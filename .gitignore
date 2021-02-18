@@ -1,0 +1,4 @@
+.spotify_caches/*
+.vscode/*
+__pycache__/*
+config.json
