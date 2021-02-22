@@ -1,4 +1,5 @@
-.spotify_caches/*
-.vscode/*
-__pycache__/*
+.spotify_caches/
+.vscode/
+__pycache__/
+.flask_session/
 config.json
