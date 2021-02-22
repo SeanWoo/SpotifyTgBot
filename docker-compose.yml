@@ -2,12 +2,21 @@ version: '3.8'
 services:
   mysql:
     image: mysql
+    env_file: .env
     environment: 
-      MYSQL_DATABASE: spotifyDb
-      MYSQL_USER: SpotifyTgBot
-      MYSQL_PASSWORD: 88003535555
+      MYSQL_DATABASE: $NAME_DATABASE
+      MYSQL_USER: $USER_NAME
+      MYSQL_PASSWORD: $USER_PASSWORD
       MYSQL_ROOT_PASSWORD: MYSQL_RANDOM_PASSWORD
-    hostname: localhost
     ports: 
       - 3306:3306
+    volumes: 
+      - ./:/etc/mysql/data
+  server:
+    env_file: .env
+    build: .
+    networks: $BASE_DOMEN
+    ports:
+      - 80:8080
+
       
