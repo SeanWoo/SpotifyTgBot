@@ -1,10 +1,11 @@
 import telebot
 import requests
 import threading
-#from SpotifyBot import TELEGRAM_TOKEN
+from SpotifyBot import TELEGRAM_TOKEN
 from configReader import SPOTIFY_CLIENT_ID,BASE_DOMEN
 
-bot = telebot.TeleBot("1613587240:AAGNSShlZ65cjeGWKfTCNLP56eu5Dcn8bjU")
+
+bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
 @bot.message_handler(commands=['start', 'help'])
 def send_welcome(message):
