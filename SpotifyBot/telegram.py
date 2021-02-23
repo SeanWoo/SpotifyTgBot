@@ -17,8 +17,8 @@ def google(message):
 
 @bot.message_handler(commands=['start_test'])
 def send_welcome_callback(message):
-        domen = f"https://{BASE_DOMEN}/api/callback"
-        link = "https://accounts.spotify.com/authorize?client_id="+SPOTIFY_CLIENT_ID+"esponse_type=code&redirect_uri="+domen
+        domen = f"http://{BASE_DOMEN}:5000/api/callback"
+        link = "https://accounts.spotify.com/authorize?client_id="+SPOTIFY_CLIENT_ID+"&response_type=code&redirect_uri="+domen
         msg = "какой то текст\n\nссылка" + link
         bot.reply_to(message, msg)
 
