@@ -30,13 +30,18 @@ class MySQLDatabase():
     def execute(self, query, data = None):
         if self.cursor == None: return False
         try:
+            self.cursor = self.connection.cursor()
             self.cursor.execute(query, data)
         except Error as e:
             print(f"The error '{e}' occurred")
+
             return False
 
         return self.cursor
 
-    def close():
+    def close_cursor(self):
         self.cursor.close()
+        self.connection.commit()
+
+    def close_connection(self):
         self.connection.close()
