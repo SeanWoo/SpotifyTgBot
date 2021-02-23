@@ -1,5 +1,6 @@
 import telebot
 import requests
+import threading
 #from SpotifyBot import TELEGRAM_TOKEN
 
 bot = telebot.TeleBot("1613587240:AAGNSShlZ65cjeGWKfTCNLP56eu5Dcn8bjU")
@@ -12,4 +13,5 @@ def send_welcome(message):
 def google(message):
     bot.reply_to(message, requests.get("https://www.google.com").text[0:10])
 
-bot.polling()
+th = threading.Thread(target=bot.polling)
+th.start()

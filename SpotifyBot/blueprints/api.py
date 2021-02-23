@@ -12,8 +12,4 @@ def callback():
     #    session['uuid'] = str(uuid.uuid4())
     code = request.args.get("code")
 
-    crs = db.execute("SELECT * FROM tokens;")
-    for el in crs:
-        print(el)
-
     return jsonify({'error_code': 'ok'})

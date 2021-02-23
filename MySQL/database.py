@@ -28,6 +28,7 @@ class MySQLDatabase():
         return True
 
     def execute(self, query, data = None):
+        if self.cursor == None: return False
         try:
             self.cursor.execute(query, data)
         except Error as e:

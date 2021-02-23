@@ -1,22 +1,27 @@
 version: '3.8'
 services:
-  mysql:
+  MySQL:
     image: mysql
+    container_name: MySQL 
+    restart: always
     env_file: .env
     environment: 
       MYSQL_DATABASE: $NAME_DATABASE
       MYSQL_USER: $USER_NAME
       MYSQL_PASSWORD: $USER_PASSWORD
       MYSQL_ROOT_PASSWORD: MYSQL_RANDOM_PASSWORD
-    ports: 
-      - 3306:3306
     volumes: 
       - ./:/etc/mysql/data
   server:
     env_file: .env
     build: .
-    networks: $BASE_DOMEN
+    container_name: Server 
+    restart: always
+    links: 
+      - MySQL:db
+    depends_on: 
+      - MySQL
     ports:
-      - 80:8080
+      - 5001:5000
 
       
