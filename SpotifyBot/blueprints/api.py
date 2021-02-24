@@ -2,7 +2,7 @@ import uuid
 import base64
 import json
 import requests as r
-import datetime
+import datetime, time
 from flask import session, request, jsonify
 from flask import Blueprint
 from extensions import db
@@ -17,10 +17,12 @@ def callback(urlid):
     code = request.args.get("code")
 
     if code:
-
-        cursor = db.execute(f"SELECT * FROM queue WHERE link LIKE '%{urlid}%'")
+        cursor = db.execute(f"SELECT * FROM queue WHERE link LIKE '%{urlid}%' AND endtime > {round(time.time())}")
         data = cursor.fetchone()
         db.close_cursor()
+
+        if not data:
+            return jsonify({'error_code': 'not_valid'})
 
         auth = base64.urlsafe_b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}".encode()).decode()
         response = r.post(f"https://accounts.spotify.com/api/token?grant_type=authorization_code&code={code}&redirect_uri={data[2]}",
