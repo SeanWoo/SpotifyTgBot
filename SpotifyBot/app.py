@@ -20,10 +20,11 @@ def register_blueprint(app):
     app.register_blueprint(api_blueprint, url_prefix='/api')
 
 def register_extensions(app):
-    check = True
-    while check: 
-        time.sleep(5)
+    check = False
+    while not check: 
         if  db.create_connection(DATABASE_CONNECT["SERVER"], DATABASE_CONNECT["USER"], DATABASE_CONNECT["PASSWORD"], DATABASE_CONNECT["DATABASE"]): 
-            check = False
-    initDb(db)  
+            check = True
+        else:
+            time.sleep(5)
+    initDb(db)   
 
