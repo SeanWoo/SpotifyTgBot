@@ -1,4 +1,6 @@
-import json
+import json, os
+
+path = "config.json" if os.path.exists("config.json") else "config.local.json"
 
 with open("config.json", "r") as f:
     obj = json.loads(f.read())
