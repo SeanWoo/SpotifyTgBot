@@ -21,10 +21,14 @@ def register_blueprint(app):
 
 def register_extensions(app):
     check = False
-    while not check: 
-        if  db.create_connection(DATABASE_CONNECT["SERVER"], DATABASE_CONNECT["USER"], DATABASE_CONNECT["PASSWORD"], DATABASE_CONNECT["DATABASE"]): 
+    while not check:
+        print('check') 
+        if  db.create_connection(DATABASE_CONNECT["SERVER"], DATABASE_CONNECT["USER"], DATABASE_CONNECT["PASSWORD"], DATABASE_CONNECT["DATABASE"]):
+            db.create_connection(DATABASE_CONNECT["SERVER"], DATABASE_CONNECT["USER"], DATABASE_CONNECT["PASSWORD"], DATABASE_CONNECT["DATABASE"])
+            print('Ok') 
             check = True
         else:
+            print('Error')
             time.sleep(5)
-    initDb(db)   
+    initDb(db)      
 
