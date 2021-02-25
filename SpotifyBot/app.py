@@ -4,6 +4,7 @@ from flask import Flask, session, request, redirect, jsonify
 from flask_session import Session
 from extensions import db, initDb
 from SpotifyBot import *
+import time
 
 def create_app():
     app = Flask(__name__)
@@ -19,6 +20,10 @@ def register_blueprint(app):
     app.register_blueprint(api_blueprint, url_prefix='/api')
 
 def register_extensions(app):
-    db.create_connection(DATABASE_CONNECT["SERVER"], DATABASE_CONNECT["USER"], DATABASE_CONNECT["PASSWORD"], DATABASE_CONNECT["DATABASE"])
-    initDb(db)
+    check = True
+    while check: 
+        time.sleep(5)
+        if  db.create_connection(DATABASE_CONNECT["SERVER"], DATABASE_CONNECT["USER"], DATABASE_CONNECT["PASSWORD"], DATABASE_CONNECT["DATABASE"]): 
+            check = False
+    initDb(db)  
 
