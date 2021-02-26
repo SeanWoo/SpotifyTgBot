@@ -26,14 +26,14 @@ def register_extensions(app):
     start_telegram_bot()
 
 def checking_connect_db():
-    check_conn = False
     print('New Checking')
-    while not check_conn:
+    while True:
         check = db.create_connection(DATABASE_CONNECT["SERVER"], DATABASE_CONNECT["USER"], DATABASE_CONNECT["PASSWORD"], DATABASE_CONNECT["DATABASE"])
-        print('Check')
+        print('Checking connection')
         if check:
-            print('Ok')
-            check_conn = True
+            print('Db connected')
+            db.close_connection()
+            break
         else:
-            print('Error')
+            print('Error connection')
             time.sleep(5)

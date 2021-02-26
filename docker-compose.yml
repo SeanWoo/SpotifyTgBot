@@ -19,8 +19,8 @@ services:
     restart: always
     links: 
       - MySQL:db
-    # depends_on: 
-    #   - MySQL
+    depends_on: 
+      - MySQL
     ports:
       - 5000:5000
 
