@@ -9,6 +9,9 @@ from telebot import types
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
+def start_telegram_bot():
+    th = threading.Thread(target=bot.polling)
+    th.start()
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
@@ -57,5 +60,3 @@ def send_welcome_callback(message):
     bot.send_message(message.chat.id, responseMessage, reply_markup=markup)
 
 
-th = threading.Thread(target=bot.polling)
-th.start()

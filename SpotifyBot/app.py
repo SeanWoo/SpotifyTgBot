@@ -22,6 +22,7 @@ def register_blueprint(app):
 def register_extensions(app):
     checking_connect_db(db.create_connection(DATABASE_CONNECT["SERVER"], DATABASE_CONNECT["USER"], DATABASE_CONNECT["PASSWORD"], DATABASE_CONNECT["DATABASE"]))
     initDb(db)
+    start_telegram_bot()
 
 def checking_connect_db(db):
     check_conn = False

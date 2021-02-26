@@ -47,3 +47,8 @@ class MySQLDatabase():
 
     def close_connection(self):
         self.connection.close()
+
+    def connection_exist(self):
+        if self.connection:
+            return True
+        return False
