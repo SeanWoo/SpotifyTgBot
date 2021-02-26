@@ -31,13 +31,11 @@ class MySQLDatabase():
         return True
 
     def execute(self, query, data = None):
-        if self.cursor == None: return False
         try:
             self.cursor = self.connection.cursor(buffered=True)
             self.cursor.execute(query, data)
         except Error as e:
             print(f'The error {e} occurred')
-
             return False
 
         return self.cursor
