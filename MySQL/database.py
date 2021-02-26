@@ -16,16 +16,17 @@ class MySQLDatabase():
             self.cursor = self.connection.cursor(buffered=True)
             print("Connection to MySQL DB successful")
             return True
-        except Exception as e:
-            return False
+        except Error as e:
             print(f"The error '{e}' occurred")
+
+
+
 
     def create_database(self, query):
         try:
             self.cursor.execute(query)
-        except Exception as e:
+        except Error as e:
             print(f"The error '{e}' occurred")
-            return False
 
         return True
 
@@ -34,7 +35,7 @@ class MySQLDatabase():
         try:
             self.cursor = self.connection.cursor(buffered=True)
             self.cursor.execute(query, data)
-        except Exception as e:
+        except Error as e:
             print(f'The error {e} occurred')
 
             return False
