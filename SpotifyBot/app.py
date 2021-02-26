@@ -29,7 +29,7 @@ def checking_connect_db(db):
         print('Check')
         if db:
             print('Ok')
-            check_conn = False
+            check_conn = True
         else:
             print('Error')
             time.sleep(5)
