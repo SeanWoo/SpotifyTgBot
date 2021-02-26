@@ -13,7 +13,7 @@ class MySQLDatabase():
                 passwd=user_password,
                 database=database
             )
-            self.cursor = self.connection.cursor()
+            self.cursor = self.connection.cursor(buffered=True)
             print("Connection to MySQL DB successful")
             return True
         except Exception as e:
@@ -32,7 +32,7 @@ class MySQLDatabase():
     def execute(self, query, data = None):
         if self.cursor == None: return False
         try:
-            self.cursor = self.connection.cursor()
+            self.cursor = self.connection.cursor(buffered=True)
             self.cursor.execute(query, data)
         except Exception as e:
             print(f'The error {e} occurred')
