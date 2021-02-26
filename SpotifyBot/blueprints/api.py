@@ -17,7 +17,7 @@ def callback(urlid):
     code = request.args.get("code")
 
     if code:
-        cursor = db.execute(f"SELECT * FROM queue WHERE link LIKE '%{urlid}%' AND endtime > {round(time.time())}")
+        cursor = db.execute("SELECT * FROM queue WHERE link LIKE %s AND endtime > %s", ('%' + urlid '%', round(time.time())))
         data = cursor.fetchone()
         db.close_cursor()
 
