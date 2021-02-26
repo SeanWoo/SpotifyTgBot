@@ -15,7 +15,9 @@ class MySQLDatabase():
             )
             self.cursor = self.connection.cursor(buffered=True)
             print("Connection to MySQL DB successful")
-        except (Exception, AttributeError) as e:
+            return True
+        except Exception as e:
+            return False
             print(f"The error '{e}' occurred")
 
     def create_database(self, query):
@@ -40,14 +42,8 @@ class MySQLDatabase():
         return self.cursor
 
     def close_cursor(self):
-        try:
-            self.cursor.close()
-            self.connection.commit()
-        except (Exception, AttributeError) as e:
-            print(f'The error {e} occurred')
+        self.cursor.close()
+        self.connection.commit()
 
     def close_connection(self):
-        try:
-            self.connection.close()
-        except (Exception, AttributeError) as e:
-            print(f'The error {e} occurred')
+        self.connection.close()

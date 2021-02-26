@@ -39,7 +39,6 @@ def callback(urlid):
                 (data[1], tokens["access_token"], tokens["refresh_token"], tokens["expires_in"], now))
         db.close_cursor()
 
-    return jsonify({'error_code': 'ok'})
-
-
+        return jsonify({'error_code': 'ok'})
+    return jsonify({'error_code': 'not_valid'})
 
