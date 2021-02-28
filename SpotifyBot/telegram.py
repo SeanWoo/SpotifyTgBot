@@ -6,6 +6,7 @@ from SpotifyBot import TELEGRAM_TOKEN
 from configReader import SPOTIFY_CLIENT_ID,REDIRECT_URL
 from extensions import db
 from telebot import types
+from loger import *
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
@@ -25,17 +26,23 @@ def find_track(message):
 
 @bot.message_handler(commands=['start'])
 def send_welcome_callback(message):
+    log_message = message.from_user.id, message.from_user.username
     cursor = db.execute("SELECT * FROM tokens WHERE tgid=%s", (message.from_user.id,))
     user = cursor.fetchone()
     db.close_cursor()
+    log.info(log_message)
+    
+
 
     if user:
+        log_message = message.from_user.id, message.from_user.username
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
         playlists_button = types.KeyboardButton('Плейлисты')
         find_track_button = types.KeyboardButton('Поиск треков')
         markup.add(playlists_button, find_track_button)
 
         bot.send_message(message.chat.id, "Вы были зарегестрированы", reply_markup=markup)
+        log.info(log_message)
         return
 
     cursor = db.execute("SELECT * FROM queue WHERE tgid=%s OR tgid IS NULL OR endtime < %s LIMIT 1",

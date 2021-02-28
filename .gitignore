@@ -4,3 +4,4 @@ __pycache__/
 .flask_session/
 config.*
 .env
+log.txt
