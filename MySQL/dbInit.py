@@ -1,6 +1,6 @@
 from configReader import REDIRECT_URL
 
-tokens_query = "CREATE TABLE IF NOT EXISTS tokens (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, tgid BIGINT, access_token VARCHAR(256), refresh_token VARCHAR(256), expires_in INT, registration_at DATETIME)"
+tokens_query = "CREATE TABLE IF NOT EXISTS tokens (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, tgid BIGINT, access_token VARCHAR(512), refresh_token VARCHAR(512), expires_in INT, registration_at DATETIME)"
 queue_query = "CREATE TABLE IF NOT EXISTS queue (id INT NOT NULL PRIMARY KEY AUTO_INCREMENT, tgid BIGINT, link VARCHAR(64), endtime INT)"
 
 def initDb(db):

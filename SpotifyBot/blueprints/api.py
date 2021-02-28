@@ -6,7 +6,7 @@ import datetime, time
 from flask import session, request, jsonify
 from flask import Blueprint
 from extensions import db
-from SpotifyBot import REDIRECT_URL, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
+from SpotifyBot import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_SCOPE
 
 
 api_blueprint = Blueprint('api', __name__)
@@ -25,7 +25,7 @@ def callback(urlid):
             return jsonify({'error_code': 'not_valid'})
 
         auth = base64.urlsafe_b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}".encode()).decode()
-        response = r.post(f"https://accounts.spotify.com/api/token?grant_type=authorization_code&code={code}&redirect_uri={data[2]}",
+        response = r.post(f"https://accounts.spotify.com/api/token?grant_type=authorization_code&code={code}&scope={SPOTIFY_SCOPE}&redirect_uri={data[2]}",
         headers={
             "Authorization": f"Basic {auth}",
             "Content-Type": "application/x-www-form-urlencoded"

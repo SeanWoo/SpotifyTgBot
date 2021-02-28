@@ -3,7 +3,7 @@ import json
 from flask import Flask, session, request, redirect, jsonify
 from flask_session import Session
 from extensions import db, initDb
-from SpotifyBot import *
+from SpotifyBot import DATABASE_CONNECT, start_telegram_bot, api_blueprint
 import time
 
 def create_app():
