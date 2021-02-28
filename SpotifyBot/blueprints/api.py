@@ -6,8 +6,11 @@ import datetime, time
 from flask import session, request, jsonify
 from flask import Blueprint
 from extensions import db
-from SpotifyBot import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_SCOPE
+from SpotifyBot import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_SCOPE, QueueRepository, TokenRepository
 
+
+queueRepository = QueueRepository()
+tokenRepository = TokenRepository()
 
 api_blueprint = Blueprint('api', __name__)
 
@@ -17,10 +20,8 @@ def callback(urlid):
     code = request.args.get("code")
 
     if code:
-        cursor = db.execute("SELECT * FROM queue WHERE link LIKE %s AND endtime > %s", ('%' + urlid + '%', round(time.time())))
-        data = cursor.fetchone()
-        db.close_cursor()
-
+        data = queueRepository.get_tgid_by_urlid(urlid)
+        
         if not data:
             return jsonify({'error_code': 'not_valid'})
 
@@ -32,12 +33,7 @@ def callback(urlid):
         })
         tokens = json.loads(response.text)
         
-
-
-        now = datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-        db.execute("INSERT INTO tokens(tgid, access_token, refresh_token, expires_in, registration_at) VALUES (%s, %s, %s, %s, %s)",
-                (data[1], tokens["access_token"], tokens["refresh_token"], tokens["expires_in"], now))
-        db.close_cursor()
+        tokenRepository.add_token(data[1], tokens["access_token"], tokens["refresh_token"], tokens["expires_in"])
 
         return jsonify({'error_code': 'ok'})
     return jsonify({'error_code': 'not_valid'})

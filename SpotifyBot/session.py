@@ -1,5 +1,7 @@
 from extensions import db
-from SpotifyBot import SpotifyClient
+from SpotifyBot import SpotifyClient, TokenRepository
+
+tokenRepository = TokenRepository()
 
 class Session():
     def __init__(self,size):
@@ -22,21 +24,19 @@ class Session():
 
         return True
 
-    def get(self,id):
+    def get(self,tgid):
         for i in self.clients:
             if not i:
                 break
-            if i.tgid == id:
+            if i.tgid == tgid:
                 return i
 
-    def take(self,id):
-        client = self.get(id)
+    def take(self,tgid):
+        client = self.get(tgid)
         if client:
             return client
         else:
-            cursor = db.execute(f"SELECT * FROM tokens WHERE tgid = {id}")
-            data = cursor.fetchone()
-            db.close_cursor()
+            data = tokenRepository.get_token(tgid)
             if data:
                 client = SpotifyClient(data)
                 self.add(client)

@@ -2,12 +2,12 @@ import telebot
 import requests
 import threading
 import time
-from SpotifyBot import TELEGRAM_TOKEN, SpotifyClient, Session
+from SpotifyBot import TELEGRAM_TOKEN, SpotifyClient, Session, QueueRepository
 from configReader import SPOTIFY_CLIENT_ID,SPOTIFY_SCOPE
-from extensions import db
 from telebot import types
 
 cache_client = Session(200)
+queueRepository = QueueRepository()
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
@@ -39,17 +39,14 @@ def send_welcome_callback(message):
         markup.add(playlists_button, find_track_button)
 
         user_info = user.get_me()
+        if not user_info:
+            pass #TODO: Сделать удаление юзера из кэша и базы данных
         username = user_info["display_name"]
         bot.send_message(message.chat.id, f"Аккаунт {username} был зарегестрирован", reply_markup=markup)
         return
 
-    cursor = db.execute("SELECT * FROM queue WHERE tgid=%s OR tgid IS NULL OR endtime < %s LIMIT 1",
-                        (message.from_user.id,round(time.time())))
-    data = cursor.fetchone()
-    db.close_cursor()
-
-    db.execute(f"UPDATE queue SET tgid=%s, endtime=%s WHERE id={data[0]}", (message.from_user.id, time.time() + 300))
-    db.close_cursor()
+    data = queueRepository.get_free_link(message.from_user.id)
+    queueRepository.block_link(data[0], message.from_user.id)
 
     link = f"https://accounts.spotify.com/authorize?client_id={SPOTIFY_CLIENT_ID}&response_type=code&scope={SPOTIFY_SCOPE}&redirect_uri={data[2]}"
     responseMessage = "Привет! Я музыкальный бот. Чтобы начать со мной взаимодействия, авторизируйтесь в Spotify нажав кнопку ниже."
