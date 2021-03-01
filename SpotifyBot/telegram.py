@@ -2,14 +2,19 @@ import telebot
 import requests
 import threading
 import time
-from SpotifyBot import TELEGRAM_TOKEN
-from configReader import SPOTIFY_CLIENT_ID,REDIRECT_URL
-from extensions import db
+from SpotifyBot import TELEGRAM_TOKEN, SpotifyClient, Session, QueueRepository
+from configReader import SPOTIFY_CLIENT_ID,SPOTIFY_SCOPE
 from telebot import types
-from loger import *
+from extensions import log
+
+cache_client = Session(200)
+queueRepository = QueueRepository()
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
+def start_telegram_bot():
+    th = threading.Thread(target=bot.polling)
+    th.start()
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
@@ -26,34 +31,27 @@ def find_track(message):
 
 @bot.message_handler(commands=['start'])
 def send_welcome_callback(message):
-    log_message = f'User {message.from_user.username}({message.from_user.id}) entered the bot'
-    cursor = db.execute("SELECT * FROM tokens WHERE tgid=%s", (message.from_user.id,))
-    user = cursor.fetchone()
-    db.close_cursor()
-    log.info(str(log_message))
-    
-
+    log.info(f'User {message.from_user.username}({message.from_user.id}) entered the bot') 
+    user = cache_client.take(message.from_user.id)
 
     if user:
-        log_message = f'User {message.from_user.username}({message.from_user.id}) logged in Spotify account'
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
         playlists_button = types.KeyboardButton('Плейлисты')
         find_track_button = types.KeyboardButton('Поиск треков')
         markup.add(playlists_button, find_track_button)
 
-        bot.send_message(message.chat.id, "Вы были зарегестрированы", reply_markup=markup)
-        log.info(str(log_message))
+        user_info = user.get_me()
+        if not user_info:
+            pass #TODO: Сделать удаление юзера из кэша и базы данных
+        username = user_info["display_name"]
+        bot.send_message(message.chat.id, f"Аккаунт {username} был зарегестрирован", reply_markup=markup)
+        log.info(f'User {message.from_user.username}({message.from_user.id}) logged in Spotify account')
         return
 
-    cursor = db.execute("SELECT * FROM queue WHERE tgid=%s OR tgid IS NULL OR endtime < %s LIMIT 1",
-                        (message.from_user.id,round(time.time())))
-    data = cursor.fetchone()
-    db.close_cursor()
+    data = queueRepository.get_free_link(message.from_user.id)
+    queueRepository.block_link(data[0], message.from_user.id)
 
-    db.execute(f"UPDATE queue SET tgid=%s, endtime=%s WHERE id={data[0]}", (message.from_user.id, time.time() + 300))
-    db.close_cursor()
-
-    link = "https://accounts.spotify.com/authorize?client_id="+SPOTIFY_CLIENT_ID+"&response_type=code&redirect_uri="+data[2]
+    link = f"https://accounts.spotify.com/authorize?client_id={SPOTIFY_CLIENT_ID}&response_type=code&scope={SPOTIFY_SCOPE}&redirect_uri={data[2]}"
     responseMessage = "Привет! Я музыкальный бот. Чтобы начать со мной взаимодействия, авторизируйтесь в Spotify нажав кнопку ниже."
 
     markup = types.InlineKeyboardMarkup()
@@ -64,5 +62,3 @@ def send_welcome_callback(message):
     bot.send_message(message.chat.id, responseMessage, reply_markup=markup)
 
 
-th = threading.Thread(target=bot.polling)
-th.start()

@@ -6,8 +6,11 @@ import datetime, time
 from flask import session, request, jsonify
 from flask import Blueprint
 from extensions import db
-from SpotifyBot import REDIRECT_URL, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET
+from SpotifyBot import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_SCOPE, QueueRepository, TokenRepository
 
+
+queueRepository = QueueRepository()
+tokenRepository = TokenRepository()
 
 api_blueprint = Blueprint('api', __name__)
 
@@ -17,29 +20,21 @@ def callback(urlid):
     code = request.args.get("code")
 
     if code:
-        cursor = db.execute(f"SELECT * FROM queue WHERE link LIKE '%{urlid}%' AND endtime > {round(time.time())}")
-        data = cursor.fetchone()
-        db.close_cursor()
-
+        data = queueRepository.get_tgid_by_urlid(urlid)
+        
         if not data:
             return jsonify({'error_code': 'not_valid'})
 
         auth = base64.urlsafe_b64encode(f"{SPOTIFY_CLIENT_ID}:{SPOTIFY_CLIENT_SECRET}".encode()).decode()
-        response = r.post(f"https://accounts.spotify.com/api/token?grant_type=authorization_code&code={code}&redirect_uri={data[2]}",
+        response = r.post(f"https://accounts.spotify.com/api/token?grant_type=authorization_code&code={code}&scope={SPOTIFY_SCOPE}&redirect_uri={data[2]}",
         headers={
             "Authorization": f"Basic {auth}",
             "Content-Type": "application/x-www-form-urlencoded"
         })
         tokens = json.loads(response.text)
         
+        tokenRepository.add_token(data[1], tokens["access_token"], tokens["refresh_token"], tokens["expires_in"])
 
-
-        now = datetime.datetime.today().strftime('%Y-%m-%d %H:%M:%S')
-        db.execute("INSERT INTO tokens(tgid, access_token, refresh_token, expires_in, registration_at) VALUES (%s, %s, %s, %s, %s)",
-                (data[1], tokens["access_token"], tokens["refresh_token"], tokens["expires_in"], now))
-        db.close_cursor()
-
-    return jsonify({'error_code': 'ok'})
-
-
+        return jsonify({'error_code': 'ok'})
+    return jsonify({'error_code': 'not_valid'})
 

@@ -1,7 +1,5 @@
 import logging
 import sys
-import telebot
-from SpotifyBot.app import *
 
 def get_logger(name = __file__, file = 'log.txt', encoding = 'utf-8'):
     log = logging.getLogger(name)
@@ -18,5 +16,3 @@ def get_logger(name = __file__, file = 'log.txt', encoding = 'utf-8'):
     log.addHandler(sh)
 
     return log
-
-log = get_logger()

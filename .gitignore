@@ -2,6 +2,8 @@
 .vscode/
 __pycache__/
 .flask_session/
+config_*
 config.*
 .env
-log.txt
+tests
+*log.txt
