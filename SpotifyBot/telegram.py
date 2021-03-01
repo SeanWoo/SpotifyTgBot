@@ -35,7 +35,7 @@ def send_welcome_callback(message):
 
 
     if user:
-        log_message = f'User {message.from_user.username}({message.from_user.id}) logged in Spotify accaunt'
+        log_message = f'User {message.from_user.username}({message.from_user.id}) logged in Spotify account'
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
         playlists_button = types.KeyboardButton('Плейлисты')
         find_track_button = types.KeyboardButton('Поиск треков')
