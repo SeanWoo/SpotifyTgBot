@@ -10,11 +10,7 @@ class SpotifyClient():
     def __init__(self,data):
         self.Id,self.tgid,self.access_token,self.refresh_token,self.expires_in,self.registration_at = data
         self.current_track = "Отсутствует"
-        self.favorites = []
-        self.playlists = []
         self.tracks = []
-
-
 
     def get_me(self):
         self._check_valid_token()
@@ -43,8 +39,11 @@ class SpotifyClient():
     def like(self):
         pass
 
-    def get_music_of_playlist(self):
-        pass
+    def get_playlists(self):#TODO: возрат массив Playlist
+        return []
+
+    def get_music_of_playlist(self, playlist):#TODO: возрат массива Track
+        return []
 
     def search(self):
         pass

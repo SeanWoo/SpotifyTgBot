@@ -17,12 +17,75 @@ def start_telegram_bot():
 
 @bot.callback_query_handler(func=lambda call: True)
 def callback_inline(call):
+    user = cache_client.take(call.from_user.id)
     if call.data == 'help':
        bot.send_message(call.message.chat.id, "Сообщение с информацией о функционале")
+    elif call.data == "play":
+        user.play()
+    elif call.data == "next":
+        user.next()
+    elif call.data == "prev":
+        user.prev()
+    elif call.data == "cplaylist":
+        user.cycle_playlist()
+    elif call.data == "shuffle":
+        user.shuffle()
+    elif call.data == "ctrack":
+        user.cycle_track()
+    elif call.data == "like":
+        user.like()
+    elif call.data.find("selectPlaylist") != -1:
+        namePlaylist = call.data.split(' ')[1]
+        tracks = user.get_music_of_playlist(namePlaylist)
+        user.tracks = tracks
+        control(call.message, call.from_user.id)
+
+    bot.answer_callback_query(call.id)
 
 @bot.message_handler(func=lambda message: message.text == "Плейлисты")
 def playlists(message):
-    bot.send_message(message.chat.id, "Плейлисты")
+    user = cache_client.take(message.from_user.id)
+    msg = "Ваши плейлисты: \n"
+
+    markup = types.InlineKeyboardMarkup()
+
+    counter = 0
+    for playlist in user.get_playlists():
+        counter += 1
+        msg += f"{counter}) {playlist.name}\n"
+
+        button = types.InlineKeyboardButton(playlist.name, callback_data=f"selectPlaylist {playlist.name}")
+        markup.add(button)
+    button2 = types.InlineKeyboardButton("asd", callback_data=f"selectPlaylist asd")
+    markup.add(button2)
+    bot.send_message(message.chat.id, msg, reply_markup=markup)
+
+@bot.message_handler(func=lambda message: message.text == "Управление")
+def control(message, user_id = None):
+    user = cache_client.take(user_id if user_id else message.from_user.id)
+
+    msg = "Ваши треки: \n"
+    counter = 0
+    for track in user.tracks:
+        if track == user.current_track:
+            msg += f"Текущий трек: {track.name}\n"
+        else:
+            msg += f"{track.name}\n"
+        counter += 1
+
+    markup = types.InlineKeyboardMarkup()
+    prev_button = types.InlineKeyboardButton('Prev', callback_data="prev")
+    play_button = types.InlineKeyboardButton('Play/Pause', callback_data="play")
+    next_button = types.InlineKeyboardButton('Next', callback_data='next')
+
+    cplaylist_button = types.InlineKeyboardButton('Cycle playlist', callback_data='cplaylist')
+    shufle_button = types.InlineKeyboardButton('Shuffle', callback_data='shuffle')
+    ctrack_button = types.InlineKeyboardButton('Cycle track', callback_data='ctrack')
+
+    like_button = types.InlineKeyboardButton('Like', callback_data='like')
+    markup.add(prev_button, play_button, next_button, cplaylist_button, shufle_button, ctrack_button, like_button)
+
+    bot.send_message(message.chat.id, msg, reply_markup=markup)
 
 @bot.message_handler(func=lambda message: message.text == "Поиск треков")
 def find_track(message):
@@ -35,8 +98,9 @@ def send_welcome_callback(message):
     if user:
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
         playlists_button = types.KeyboardButton('Плейлисты')
+        control_button = types.KeyboardButton('Управление')
         find_track_button = types.KeyboardButton('Поиск треков')
-        markup.add(playlists_button, find_track_button)
+        markup.add(playlists_button, control_button, find_track_button)
 
         user_info = user.get_me()
         if not user_info:
