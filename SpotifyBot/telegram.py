@@ -11,6 +11,8 @@ queueRepository = QueueRepository()
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
+help_message = "Благодаря синхронизации Spotify, Вы можете слушать музыку на чём угодно. Наша команда решила создать бота для телеграмма, благодаря которому у Вас появится возможность выполнять различные действия используя телеграмм бота. Функционал бота практически ничем не будет отличаться от обычного плеера или же того же Spotify. Вы с лёгкостью сможете изменять плейлисты и также искать нужные вам треки. \n\n With Spotify synchronization, users are able listen to music nearly on every device. Our team came up with an idea to create a bot for a messenger known as Telegram. With this Bot, users can use messenger just like a regular player, yet many people might think that it would be complicated to use and it would be much easier to use just Spotify app. Nonetheless, our Telegram bot will have same functional as regular app. Without a doubt, users with ease can change playlists, change music or search for it."
+
 def start_telegram_bot():
     th = threading.Thread(target=bot.polling)
     th.start()
@@ -19,7 +21,7 @@ def start_telegram_bot():
 def callback_inline(call):
     user = cache_client.take(call.from_user.id)
     if call.data == 'help':
-       bot.send_message(call.message.chat.id, "Сообщение с информацией о функционале")
+       bot.send_message(call.message.chat.id, help_message)
     elif call.data == "play":
         user.play()
     elif call.data == "next":
@@ -56,9 +58,11 @@ def playlists(message):
 
         button = types.InlineKeyboardButton(playlist.name, callback_data=f"selectPlaylist {playlist.name}")
         markup.add(button)
-    button2 = types.InlineKeyboardButton("asd", callback_data=f"selectPlaylist asd")
-    markup.add(button2)
     bot.send_message(message.chat.id, msg, reply_markup=markup)
+
+@bot.message_handler(func=lambda message: message.text == "О нас")
+def find_track(message):
+    bot.send_message(message.chat.id, help_message)
 
 @bot.message_handler(func=lambda message: message.text == "Управление")
 def control(message, user_id = None):
@@ -100,7 +104,8 @@ def send_welcome_callback(message):
         playlists_button = types.KeyboardButton('Плейлисты')
         control_button = types.KeyboardButton('Управление')
         find_track_button = types.KeyboardButton('Поиск треков')
-        markup.add(playlists_button, control_button, find_track_button)
+        help_button = types.KeyboardButton('О нас')
+        markup.add(playlists_button, control_button, find_track_button, help_button)
 
         user_info = user.get_me()
         if not user_info:
