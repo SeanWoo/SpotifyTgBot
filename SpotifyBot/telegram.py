@@ -23,10 +23,45 @@ def callback_inline(call):
 @bot.message_handler(func=lambda message: message.text == "Плейлисты")
 def playlists(message):
     bot.send_message(message.chat.id, "Плейлисты")
+    
 
 @bot.message_handler(func=lambda message: message.text == "Поиск треков")
 def find_track(message):
     bot.send_message(message.chat.id, "Поиск треков")
+
+@bot.message_handler(func=lambda message: message.text == "Воспроизведение")
+def play_track(message):
+    user = cache_client.take(message.from_user.id)
+    bot.send_message(message.chat.id, 'Воспроизведение')
+    return user.play()
+
+@bot.message_handler(func=lambda message: message.text == "Пауза")
+def pause_track(message):
+    user = cache_client.take(message.from_user.id)
+    bot.send_message(message.chat.id, 'Пауза')
+    return user.stop()
+
+@bot.message_handler(func=lambda message: message.text == "Предыдущий трек")
+def nprev_track(message):
+    user = cache_client.take(message.from_user.id)
+    bot.send_message(message.chat.id, 'Предыдущий трек')
+    return user.prev()
+
+@bot.message_handler(func=lambda message: message.text == "Следующий трек")
+def next_track(message):
+    user = cache_client.take(message.from_user.id)
+    bot.send_message(message.chat.id, 'Следующий трек')
+    return user.next()
+
+@bot.message_handler(func=lambda message: message.text == "Плеер")
+def player(message):
+    user = cache_client.take(message.from_user.id)
+    markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=4)
+    prev_button = types.KeyboardButton('Предыдущий трек')
+    pause_button = types.KeyboardButton('Пауза')
+    play_button = types.KeyboardButton('Воспроизведение')
+    next_button = types.KeyboardButton('Следующий трек')
+    markup.add(prev_button, play_button, pause_button, next_button)    
 
 @bot.message_handler(commands=['start'])
 def send_welcome_callback(message):
@@ -36,7 +71,9 @@ def send_welcome_callback(message):
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
         playlists_button = types.KeyboardButton('Плейлисты')
         find_track_button = types.KeyboardButton('Поиск треков')
-        markup.add(playlists_button, find_track_button)
+        play_button = types.KeyboardButton('Воспроизведение')
+        player_button = types.KeyboardButton('Плеер')
+        markup.add(playlists_button, play_button, player_button, find_track_button)
 
         user_info = user.get_me()
         if not user_info:
@@ -57,5 +94,3 @@ def send_welcome_callback(message):
     markup.add(auth_button, help_button)
 
     bot.send_message(message.chat.id, responseMessage, reply_markup=markup)
-
-
