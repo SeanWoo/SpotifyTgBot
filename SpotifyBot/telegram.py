@@ -126,5 +126,3 @@ def send_welcome_callback(message):
     markup.add(auth_button, help_button)
 
     bot.send_message(message.chat.id, responseMessage, reply_markup=markup)
-
-
