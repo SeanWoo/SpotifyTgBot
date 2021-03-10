@@ -2,15 +2,23 @@ import requests as r
 import json
 import datetime
 import base64
-from SpotifyBot import TokenRepository, SPOTIFY_CLIENT_ID,SPOTIFY_CLIENT_SECRET
+from SpotifyBot import TokenRepository, SPOTIFY_CLIENT_ID,SPOTIFY_CLIENT_SECRET, Playlist, Track
 
 tokenRepository = TokenRepository()
 
 class SpotifyClient():
     def __init__(self,data):
         self.Id,self.tgid,self.access_token,self.refresh_token,self.expires_in,self.registration_at = data
-        self.current_track = "Отсутствует"
+        self._current_track = None
+        self._current_playlist = None
         self.tracks = []
+        self.is_playing = False
+        self.shuffle_state = False
+
+    @property
+    def current_track(self):
+        data = self._get_player_info()
+        return Track(data['item']['id'], data['item']['name'])
 
     def get_me(self):
         self._check_valid_token()
@@ -21,20 +29,34 @@ class SpotifyClient():
         if response.ok:
             return json.loads(response.text)
 
-    def play(self):
+    def play(self, track_id = None, playlist_id = None, position = 0):
         self._check_valid_token()
         headers = {
             "Authorization": self._get_auth_header()
         }
-        response = r.put("https://api.spotify.com/v1/me/player/play", headers=headers)
-        return response.ok
+        player_info = self._get_player_info()
+        self.is_playing = player_info["is_playing"]
+        
+        if track_id:
+            data = {
+                "uris": [track_id]
+            }
+        elif playlist_id:
+            data = {
+                "context_uri": "spotify:playlist:" + playlist_id,
+                "offset": {
+                    "position": position
+                },
+                "position_ms": 0
+            }
+            self._current_playlist = playlist_id
+        else:
+            data = {}
 
-    def stop(self):
-        self._check_valid_token()
-        headers = {
-            "Authorization": self._get_auth_header()
-        }
-        response = r.put("https://api.spotify.com/v1/me/player/pause", headers=headers)
+        if self.is_playing and playlist_id == None and track_id == None:
+            response = r.put("https://api.spotify.com/v1/me/player/pause", headers=headers, data=json.dumps(data))
+        else:
+            response = r.put("https://api.spotify.com/v1/me/player/play", headers=headers, data=json.dumps(data))
         return response.ok
 
     def next(self):
@@ -58,16 +80,42 @@ class SpotifyClient():
         headers = {
             "Authorization": self._get_auth_header()
         }
-        response = r.put("https://api.spotify.com/v1/me/player/shuffle", headers=headers)
+
+        player_info = self._get_player_info()
+        self.shuffle_state = not player_info["shuffle_state"]
+
+        response = r.put("https://api.spotify.com/v1/me/player/shuffle?state=" + str(self.shuffle_state), headers=headers)
         return response.ok
 
     def like(self):
         pass
 
-    def get_playlists(self):#TODO: возрат массив Playlist
+    def get_playlists(self):
+        self._check_valid_token()
+        headers = {
+            "Authorization": self._get_auth_header()
+        }
+
+        player_info = self._get_player_info()
+        self.shuffle_state = not player_info["shuffle_state"]
+
+        response = r.get("https://api.spotify.com/v1/me/playlists", headers=headers)
+        if response.ok:
+            return map(lambda x: Playlist(x['id'], x['name']), json.loads(response.text)['items'])
         return []
 
-    def get_music_of_playlist(self, playlist):#TODO: возрат массива Track
+    def get_music_of_playlist(self, playlist_id):
+        self._check_valid_token()
+        headers = {
+            "Authorization": self._get_auth_header()
+        }
+
+        player_info = self._get_player_info()
+        self.shuffle_state = not player_info["shuffle_state"]
+
+        response = r.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks?limit=10&market=ES", headers=headers)
+        if response.ok:
+            return map(lambda x: Track(x['track']['id'], x['track']['name'], playlist_id=playlist_id), json.loads(response.text)['items'])
         return []
 
     def search(self):
@@ -78,6 +126,33 @@ class SpotifyClient():
 
     def cycle_playlist(self):
         pass
+
+    def _get_devices(self):
+        self._check_valid_token()
+        headers = {
+            "Authorization": self._get_auth_header()
+        }
+        response = r.get("https://api.spotify.com/v1/me/player/devices", headers=headers)
+        if response.ok:
+            return json.loads(response.text)["devices"]
+        
+    def _get_player_info(self):
+        self._check_valid_token()
+        headers = {
+            "Authorization": self._get_auth_header()
+        }
+        response = r.get("https://api.spotify.com/v1/me/player", headers=headers)
+        if response.status_code == 204:
+            devices = self._get_devices()
+            r.put("https://api.spotify.com/v1/me/player?", headers=headers, data=json.dumps({
+                "device_ids": [devices[0]['id']],
+                "play": True
+            }))
+
+            response = r.get("https://api.spotify.com/v1/me/player", headers=headers)
+
+        if response.ok:
+            return json.loads(response.text)
 
     def _check_valid_token(self):
         if self.registration_at + datetime.timedelta(seconds=self.expires_in) <= datetime.datetime.today():

@@ -36,28 +36,37 @@ def callback_inline(call):
         user.cycle_track()
     elif call.data == "like":
         user.like()
+    elif call.data == "nav_prev_control":
+        pass
+    elif call.data == "nav_next_control":
+        pass
     elif call.data.find("selectPlaylist") != -1:
-        namePlaylist = call.data.split(' ')[1]
-        tracks = user.get_music_of_playlist(namePlaylist)
+        idPlaylist = call.data.split(' ')[1]
+        tracks = user.get_music_of_playlist(idPlaylist)
         user.tracks = tracks
         control(call.message, call.from_user.id)
+    elif call.data.find("selectTrack") != -1:
+        idAlbum = call.data.split(' ')[1]
+        position = int(call.data.split(' ')[2]) - 1
+        tracks = user.play(playlist_id=idAlbum, position=position)
 
     bot.answer_callback_query(call.id)
 
 @bot.message_handler(func=lambda message: message.text == "Плейлисты")
 def playlists(message):
     user = cache_client.take(message.from_user.id)
+
+    if not user:
+        send_welcome_callback(message)
+        return
+
     msg = "Ваши плейлисты: \n"
 
     markup = types.InlineKeyboardMarkup()
-
-    counter = 0
     for playlist in user.get_playlists():
-        counter += 1
-        msg += f"{counter}) {playlist.name}\n"
-
-        button = types.InlineKeyboardButton(playlist.name, callback_data=f"selectPlaylist {playlist.name}")
+        button = types.InlineKeyboardButton(playlist.name, callback_data=f"selectPlaylist {playlist.id}")
         markup.add(button)
+
     bot.send_message(message.chat.id, msg, reply_markup=markup)
 
 @bot.message_handler(func=lambda message: message.text == "О нас")
@@ -68,16 +77,34 @@ def find_track(message):
 def control(message, user_id = None):
     user = cache_client.take(user_id if user_id else message.from_user.id)
 
-    msg = "Ваши треки: \n"
-    counter = 0
-    for track in user.tracks:
-        if track == user.current_track:
-            msg += f"Текущий трек: {track.name}\n"
-        else:
-            msg += f"{track.name}\n"
-        counter += 1
+    if not user:
+        send_welcome_callback(message)
+        return
 
+    msg = "Ваши треки: \n"
     markup = types.InlineKeyboardMarkup()
+    counter = 0
+
+    buttons_row = []
+    for track in user.tracks:
+        counter += 1
+        msg += f"{counter}) {track.name}\n"
+        button = types.InlineKeyboardButton(str(counter), callback_data=f"selectTrack {track.playlist_id} {counter}")
+        buttons_row.append(button)
+        if len(buttons_row) % 5 == 0:
+            markup.row(*buttons_row)
+            buttons_row.clear()
+
+    if len(buttons_row) > 0:
+        markup.row(*buttons_row)
+        buttons_row.clear()
+
+    nav_prev_button = types.InlineKeyboardButton('❮', callback_data="nav_prev_control")
+    nav_page_button = types.InlineKeyboardButton('1/1', callback_data="nav_page_control")
+    nav_next_button = types.InlineKeyboardButton('❯', callback_data="nav_next_control")
+
+    markup.row(nav_prev_button, nav_page_button, nav_next_button)
+
     prev_button = types.InlineKeyboardButton('Prev', callback_data="prev")
     play_button = types.InlineKeyboardButton('Play/Pause', callback_data="play")
     next_button = types.InlineKeyboardButton('Next', callback_data='next')
