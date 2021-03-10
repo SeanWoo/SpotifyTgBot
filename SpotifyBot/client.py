@@ -30,35 +30,40 @@ class SpotifyClient():
         headers = {
             "Authorization": self._get_auth_header()
         }
-        r.put("https://api.spotify.com/v1/me/player/play", headers=headers)
+        response = r.put("https://api.spotify.com/v1/me/player/play", headers=headers)
+        return response.ok
 
     def stop(self):
         self._check_valid_token()
         headers = {
             "Authorization": self._get_auth_header()
         }
-        r.put("https://api.spotify.com/v1/me/player/pause", headers=headers)
+        response = r.put("https://api.spotify.com/v1/me/player/pause", headers=headers)
+        return response.ok
 
     def next(self):
         self._check_valid_token()
         headers = {
             "Authorization": self._get_auth_header()
         }
-        r.post("https://api.spotify.com/v1/me/player/next", headers=headers)
+        response = r.post("https://api.spotify.com/v1/me/player/next", headers=headers)
+        return response.ok
 
     def prev(self):
        self._check_valid_token()
        headers = {
             "Authorization": self._get_auth_header()
         }
-       r.post("https://api.spotify.com/v1/me/player/previous", headers=headers)
+       response = r.post("https://api.spotify.com/v1/me/player/previous", headers=headers)
+       return response.ok
 
     def shuffle(self):
         self._check_valid_token()
         headers = {
             "Authorization": self._get_auth_header()
         }
-        r.put("https://api.spotify.com/v1/me/player/shuffle", headers=headers)
+        response = r.put("https://api.spotify.com/v1/me/player/shuffle", headers=headers)
+        return response.ok
 
     def like(self):
         pass
