@@ -5,3 +5,4 @@ __pycache__/
 config.*
 config_*
 .env
+*log.txt
