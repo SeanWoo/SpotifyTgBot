@@ -17,8 +17,10 @@ class SpotifyClient():
 
     @property
     def current_track(self):
-        data = self._get_player_info()
-        return Track(data['item']['id'], data['item']['name'])
+        player_info = self._get_player_info()
+        if not player_info:
+            return None
+        return Track(player_info['item']['id'], player_info['item']['name'])
 
     def get_me(self):
         self._check_valid_token()
@@ -35,6 +37,8 @@ class SpotifyClient():
             "Authorization": self._get_auth_header()
         }
         player_info = self._get_player_info()
+        if not player_info:
+            return None
         self.is_playing = player_info["is_playing"]
         
         if track_id:
@@ -82,6 +86,8 @@ class SpotifyClient():
         }
 
         player_info = self._get_player_info()
+        if not player_info:
+            return None
         self.shuffle_state = not player_info["shuffle_state"]
 
         response = r.put("https://api.spotify.com/v1/me/player/shuffle?state=" + str(self.shuffle_state), headers=headers)
@@ -97,6 +103,8 @@ class SpotifyClient():
         }
 
         player_info = self._get_player_info()
+        if not player_info:
+            return []
         self.shuffle_state = not player_info["shuffle_state"]
 
         response = r.get("https://api.spotify.com/v1/me/playlists", headers=headers)
@@ -111,6 +119,9 @@ class SpotifyClient():
         }
 
         player_info = self._get_player_info()
+        if not player_info:
+            return None
+
         self.shuffle_state = not player_info["shuffle_state"]
 
         response = r.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks?limit=10&market=ES", headers=headers)
@@ -134,8 +145,8 @@ class SpotifyClient():
         }
         response = r.get("https://api.spotify.com/v1/me/player/devices", headers=headers)
         if response.ok:
-            return json.loads(response.text)["devices"]
-        
+            return json.loads(response.text)["devices"] 
+                 
     def _get_player_info(self):
         self._check_valid_token()
         headers = {
@@ -144,6 +155,8 @@ class SpotifyClient():
         response = r.get("https://api.spotify.com/v1/me/player", headers=headers)
         if response.status_code == 204:
             devices = self._get_devices()
+            if len(devices) == 0:
+                return None
             r.put("https://api.spotify.com/v1/me/player?", headers=headers, data=json.dumps({
                 "device_ids": [devices[0]['id']],
                 "play": True
