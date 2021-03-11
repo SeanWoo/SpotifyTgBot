@@ -5,6 +5,7 @@ import time
 from SpotifyBot import TELEGRAM_TOKEN, SpotifyClient, Session, QueueRepository
 from configReader import SPOTIFY_CLIENT_ID,SPOTIFY_SCOPE
 from telebot import types
+from extensions import log
 
 cache_client = Session(200)
 queueRepository = QueueRepository()
@@ -145,6 +146,7 @@ def send_welcome_callback(message):
             pass #TODO: Сделать удаление юзера из кэша и базы данных
         username = user_info["display_name"]
         bot.send_message(message.chat.id, f"Аккаунт {username} был зарегестрирован", reply_markup=markup)
+        log.info(f'User {message.from_user.username}({message.from_user.id}) logged in Spotify account')
         return
 
     data = queueRepository.get_free_link(message.from_user.id)

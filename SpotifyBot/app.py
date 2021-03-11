@@ -2,9 +2,10 @@ import os
 import json
 from flask import Flask, session, request, redirect, jsonify
 from flask_session import Session
-from extensions import db, initDb
+from extensions import db, initDb, log
 from SpotifyBot import DATABASE_CONNECT, start_telegram_bot, api_blueprint
 import time
+from loger import get_logger
 
 def create_app():
     app = Flask(__name__)

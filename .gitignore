@@ -1,8 +1,10 @@
 .spotify_caches/
 .vscode/
 __pycache__/
+.pytest_cache/
 .flask_session/
-config.*
 config_*
+config.*
 .env
 *log.txt
+*DS_Store*
