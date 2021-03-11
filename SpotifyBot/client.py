@@ -25,6 +25,11 @@ class SpotifyClient():
     def is_spotify_active(self):
         devices = self._get_devices()
         return len(devices) != 0 
+        
+    @property
+    def is_premium(self):
+        me = self.get_me()["product"]
+        return me != 'open'
 
     def get_me(self):
         self._check_valid_token()
@@ -113,7 +118,7 @@ class SpotifyClient():
 
         response = r.get("https://api.spotify.com/v1/me/playlists", headers=headers)
         if response.ok:
-            return map(lambda x: Playlist(x['id'], x['name']), json.loads(response.text)['items'])
+            return list(map(lambda x: Playlist(x['id'], x['name']), json.loads(response.text)['items']))
         return []
 
     def get_music_of_playlist(self, playlist_id):
@@ -130,7 +135,7 @@ class SpotifyClient():
 
         response = r.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks?limit=10&market=ES", headers=headers)
         if response.ok:
-            return map(lambda x: Track(x['track']['id'], x['track']['name'], playlist_id=playlist_id), json.loads(response.text)['items'])
+            return list(map(lambda x: Track(x['track']['id'], x['track']['name'], playlist_id=playlist_id), json.loads(response.text)['items']))
         return []
 
     def search(self):
@@ -200,17 +205,6 @@ class SpotifyClient():
 
     def _get_auth_header(self):
         return f"Bearer {self.access_token}"
-    
-    def get_product(self):
-        headers = {
-            "Authorization": self._get_auth_header()
-        }
-        response = r.get("https://api.spotify.com/v1/me", headers=headers)
-        if response.ok:
-            return json.loads(response.text)["product"]
-    def is_premium(self):
-        product = self.get_product()
-        return product != 'open'
 
     def __repr__(self):
         return str(self.Id)

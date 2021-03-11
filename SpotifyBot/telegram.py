@@ -60,7 +60,7 @@ def playlists(message):
         send_welcome_callback(message)
         return
 
-    if not check_spotify_active(message):
+    if not check_spotify_active(message, user):
         return
 
     msg = "Ваши плейлисты: \n"
@@ -84,7 +84,7 @@ def control(message, user_id = None):
         send_welcome_callback(message)
         return
 
-    if not check_spotify_active(message):
+    if not check_spotify_active(message, user):
         return
 
     msg = "Ваши треки: \n"
@@ -160,16 +160,16 @@ def send_welcome_callback(message):
 
     bot.send_message(message.chat.id, responseMessage, reply_markup=markup)
 
-def check_spotify_active(message):
-    user = cache_client.take(message.from_user.id)
-
-    if user and not user.is_spotify_active:
-        error_message(message, "Запустите приложение спотифай и включите музыку чтоб получить доступ к Вам")
-        return False
-    if user and not user.is_premium():
-        error_message(message, 'У вас не имеется Premium.') 
-        return False
-    return True
+def check_spotify_active(message, user):
+    if user:
+        if not user.is_spotify_active:
+            error_message(message, "Запустите приложение спотифай и включите музыку чтоб получить доступ к Вам")
+            return False
+        if not user.is_premium:
+            error_message(message, 'У вас не имеется Premium.') 
+            return False
+        return True
+    return False
 
 def error_message(message, msg):
     user = cache_client.take(message.from_user.id)
