@@ -162,11 +162,11 @@ def send_welcome_callback(message):
 
 def check_spotify_active(message, user):
     if user:
-        if not user.is_spotify_active:
-            error_message(message, "Запустите приложение спотифай и включите музыку чтоб получить доступ к Вам")
-            return False
         if not user.is_premium:
             error_message(message, 'У вас не имеется Premium.') 
+            return False
+        if not user.is_spotify_active:
+            error_message(message, "Запустите приложение спотифай и включите музыку чтоб получить доступ к Вам")
             return False
         return True
     return False
