@@ -1,0 +1,27 @@
+version: '3.3'
+services:
+  MySQL:
+    image: mysql
+    container_name: MySQL 
+    restart: always
+    env_file: .env
+    environment: 
+      MYSQL_DATABASE: $NAME_DATABASE
+      MYSQL_USER: $USER_NAME
+      MYSQL_PASSWORD: $USER_PASSWORD
+      MYSQL_ROOT_PASSWORD: MYSQL_RANDOM_PASSWORD
+    volumes: 
+      - ./:/etc/mysql/data
+  server:
+    env_file: .env
+    build: .
+    container_name: Server 
+    restart: always
+    links: 
+      - MySQL:db
+    depends_on: 
+      - MySQL
+    ports:
+      - 5000:5000
+
+      

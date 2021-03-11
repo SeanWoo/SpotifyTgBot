@@ -13,29 +13,41 @@ class MySQLDatabase():
                 passwd=user_password,
                 database=database
             )
-            self.cursor = self.connection.cursor()
+            self.cursor = self.connection.cursor(buffered=True)
             print("Connection to MySQL DB successful")
+            return True
         except Error as e:
             print(f"The error '{e}' occurred")
+
+
+
 
     def create_database(self, query):
         try:
             self.cursor.execute(query)
         except Error as e:
             print(f"The error '{e}' occurred")
-            return False
 
         return True
 
     def execute(self, query, data = None):
         try:
+            self.cursor = self.connection.cursor(buffered=True)
             self.cursor.execute(query, data)
         except Error as e:
-            print(f"The error '{e}' occurred")
+            print(f'The error {e} occurred')
             return False
 
         return self.cursor
 
-    def close():
+    def close_cursor(self):
         self.cursor.close()
+        self.connection.commit()
+
+    def close_connection(self):
         self.connection.close()
+
+    def connection_exist(self):
+        if self.connection:
+            return True
+        return False
