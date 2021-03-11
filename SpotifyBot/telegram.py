@@ -165,7 +165,10 @@ def check_spotify_active(message):
 
     if user and not user.is_spotify_active:
         error_message(message, "Запустите приложение спотифай и включите музыку чтоб получить доступ к Вам")
-        return False 
+        return False
+    if user and not user.is_premium():
+        error_message(message, 'У вас не имеется Premium.') 
+        return False
     return True
 
 def error_message(message, msg):

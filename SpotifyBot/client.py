@@ -14,7 +14,6 @@ class SpotifyClient():
         self.tracks = []
         self.is_playing = False
         self.shuffle_state = False
-
     @property
     def current_track(self):
         player_info = self._get_player_info()
@@ -201,6 +200,17 @@ class SpotifyClient():
 
     def _get_auth_header(self):
         return f"Bearer {self.access_token}"
+    
+    def get_product(self):
+        headers = {
+            "Authorization": self._get_auth_header()
+        }
+        response = r.get("https://api.spotify.com/v1/me", headers=headers)
+        if response.ok:
+            return json.loads(response.text)["product"]
+    def is_premium(self):
+        product = self.get_product()
+        return product != 'open'
 
     def __repr__(self):
         return str(self.Id)
