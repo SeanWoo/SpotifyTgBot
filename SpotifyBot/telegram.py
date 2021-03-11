@@ -60,6 +60,9 @@ def playlists(message):
         send_welcome_callback(message)
         return
 
+    if not check_spotify_active(message):
+        return
+
     msg = "Ваши плейлисты: \n"
 
     markup = types.InlineKeyboardMarkup()
@@ -79,6 +82,9 @@ def control(message, user_id = None):
 
     if not user:
         send_welcome_callback(message)
+        return
+
+    if not check_spotify_active(message):
         return
 
     msg = "Ваши треки: \n"
@@ -153,3 +159,19 @@ def send_welcome_callback(message):
     markup.add(auth_button, help_button)
 
     bot.send_message(message.chat.id, responseMessage, reply_markup=markup)
+
+def check_spotify_active(message):
+    user = cache_client.take(message.from_user.id)
+
+    if user and not user.is_spotify_active:
+        error_message(message, "Запустите приложение спотифай и включите музыку чтоб получить доступ к Вам")
+        return False 
+    return True
+
+def error_message(message, msg):
+    user = cache_client.take(message.from_user.id)
+
+    if user:
+        bot.send_message(message.chat.id, msg)
+    else:
+        bot.send_message(message.chat.id, "Аккаунт не был зарегестрирован")

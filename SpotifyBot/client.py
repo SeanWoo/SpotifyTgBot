@@ -22,6 +22,11 @@ class SpotifyClient():
             return None
         return Track(player_info['item']['id'], player_info['item']['name'])
 
+    @property
+    def is_spotify_active(self):
+        devices = self._get_devices()
+        return len(devices) != 0 
+
     def get_me(self):
         self._check_valid_token()
         headers = {
