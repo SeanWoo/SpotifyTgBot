@@ -5,7 +5,16 @@ class MySQLDatabase():
     def __init__(self):
         self.connection = None
         self.cursor = None
+
+        self.host_name = None
+        self.user_name = None
+        self.user_password = None
+        self.database = None
     def create_connection(self, host_name, user_name, user_password, database):
+        self.host_name = host_name
+        self.user_name = user_name
+        self.user_password = user_password
+        self.database = database
         try:
             self.connection = mysql.connector.connect(
                 host=host_name,
@@ -19,10 +28,11 @@ class MySQLDatabase():
         except Error as e:
             print(f"The error '{e}' occurred")
 
-
-
-
     def create_database(self, query):
+        if not self.connection.is_connected():
+            self.create_connection(self.host_name, self.user_name, self.user_password, self.database)
+            self.close_cursor()
+
         try:
             self.cursor.execute(query)
         except Error as e:
@@ -31,6 +41,10 @@ class MySQLDatabase():
         return True
 
     def execute(self, query, data = None):
+        if not self.connection.is_connected():
+            self.create_connection(self.host_name, self.user_name, self.user_password, self.database)
+            self.close_cursor()
+
         try:
             self.cursor = self.connection.cursor(buffered=True)
             self.cursor.execute(query, data)
