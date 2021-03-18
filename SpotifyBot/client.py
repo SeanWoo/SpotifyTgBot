@@ -11,6 +11,7 @@ class SpotifyClient():
         self.Id,self.tgid,self.access_token,self.refresh_token,self.expires_in,self.registration_at = data
         self._current_track = None
         self._current_playlist = None
+        self.is_current_playlist = False
         self.tracks = []
         self.is_playing = False
         self.is_tracks_in_playlist = True
@@ -142,6 +143,7 @@ class SpotifyClient():
             return list(map(lambda x: Track(x['track']['id'], x['track']['name'], x['track']['album']['artists'][0]['name'],  playlist_id=playlist_id), json.loads(response.text)['items']))
         return []
     def get_track_in_playlist(self,id):
+        self.is_current_playlist = True
         tracks = self.get_music_of_playlist(id)
         if len(tracks) != 0:
             self.is_tracks_in_playlist = True

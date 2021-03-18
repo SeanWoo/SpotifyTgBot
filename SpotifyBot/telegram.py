@@ -94,40 +94,54 @@ def control(message, user_id = None):
 
     msg = "Ваши треки: \n"
     markup = types.InlineKeyboardMarkup(row_width=1)
-    if user.page != 1:
-        counter = 10*(user.page - 1)
-    else:
-        counter = 0
+
 
     buttons_row = []
-    tracks = user.tracks[user.page]
-    for track in tracks:
-        counter += 1
-        button = types.InlineKeyboardButton(f'{str(counter)}. {str(track.artists)} - {str(track.name)}', callback_data=f"selectTrack {track.playlist_id} {counter}")
-        buttons_row.append(button)
-        if len(buttons_row) % 10 == 0:
+    if user.is_current_playlist:
+        if user.page != 1:
+            counter = 10*(user.page - 1)
+        else:
+            counter = 0
+        tracks = user.tracks[user.page]
+        for track in tracks:
+            counter += 1
+            button = types.InlineKeyboardButton(f'{str(counter)}. {str(track.artists)} - {str(track.name)}', callback_data=f"selectTrack {track.playlist_id} {counter}")
+            buttons_row.append(button)
+            if len(buttons_row) % 10 == 0:
+                markup.add(*buttons_row)
+                buttons_row.clear()
+        if len(buttons_row) > 0:
             markup.add(*buttons_row)
             buttons_row.clear()
-    if len(buttons_row) > 0:
-        markup.add(*buttons_row)
-        buttons_row.clear()
-    nav_prev_button = types.InlineKeyboardButton('❮', callback_data="nav_prev_control")
-    nav_page_button = types.InlineKeyboardButton(f'{user.page}/{user.max_pages}', callback_data="nav_page_control")
-    nav_next_button = types.InlineKeyboardButton('❯', callback_data="nav_next_control")
+        nav_prev_button = types.InlineKeyboardButton('❮', callback_data="nav_prev_control")
+        nav_page_button = types.InlineKeyboardButton(f'{user.page}/{user.max_pages}', callback_data="nav_page_control")
+        nav_next_button = types.InlineKeyboardButton('❯', callback_data="nav_next_control")
 
-    markup.row(nav_prev_button, nav_page_button, nav_next_button)
+        markup.row(nav_prev_button, nav_page_button, nav_next_button)
 
-    prev_button = types.InlineKeyboardButton('Prev', callback_data="prev")
-    play_button = types.InlineKeyboardButton('Play/Pause', callback_data="play")
-    next_button = types.InlineKeyboardButton('Next', callback_data='next')
-    markup.row(prev_button, play_button, next_button)
-    cplaylist_button = types.InlineKeyboardButton('Cycle playlist', callback_data='cplaylist')
-    shufle_button = types.InlineKeyboardButton('Shuffle', callback_data='shuffle')
-    ctrack_button = types.InlineKeyboardButton('Cycle track', callback_data='ctrack')
+        prev_button = types.InlineKeyboardButton('Prev', callback_data="prev")
+        play_button = types.InlineKeyboardButton('Play/Pause', callback_data="play")
+        next_button = types.InlineKeyboardButton('Next', callback_data='next')
+        markup.row(prev_button, play_button, next_button)
+        cplaylist_button = types.InlineKeyboardButton('Cycle playlist', callback_data='cplaylist')
+        shufle_button = types.InlineKeyboardButton('Shuffle', callback_data='shuffle')
+        ctrack_button = types.InlineKeyboardButton('Cycle track', callback_data='ctrack')
 
-    like_button = types.InlineKeyboardButton('Like', callback_data='like')
-    markup.row(cplaylist_button, shufle_button, ctrack_button)
-    markup.add(like_button)
+        like_button = types.InlineKeyboardButton('Like', callback_data='like')
+        markup.row(cplaylist_button, shufle_button, ctrack_button)
+        markup.add(like_button)
+    else:
+        prev_button = types.InlineKeyboardButton('Prev', callback_data="prev")
+        play_button = types.InlineKeyboardButton('Play/Pause', callback_data="play")
+        next_button = types.InlineKeyboardButton('Next', callback_data='next')
+        markup.row(prev_button, play_button, next_button)
+        cplaylist_button = types.InlineKeyboardButton('Cycle playlist', callback_data='cplaylist')
+        shufle_button = types.InlineKeyboardButton('Shuffle', callback_data='shuffle')
+        ctrack_button = types.InlineKeyboardButton('Cycle track', callback_data='ctrack')
+
+        like_button = types.InlineKeyboardButton('Like', callback_data='like')
+        markup.row(cplaylist_button, shufle_button, ctrack_button)
+        markup.add(like_button)
 
     bot.send_message(message.chat.id, msg, reply_markup=markup)
 
