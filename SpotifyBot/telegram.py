@@ -69,12 +69,15 @@ def playlists(message):
         return
 
     msg = "Ваши плейлисты: \n"
-
+    playlists = user.get_playlists()[user.page]
     markup = types.InlineKeyboardMarkup()
-    for playlist in user.get_playlists():
+    for playlist in playlists:
         button = types.InlineKeyboardButton(playlist.name, callback_data=f"selectPlaylist {playlist.id}")
         markup.add(button)
-
+    nav_prev_button = types.InlineKeyboardButton('❮', callback_data="nav_prev_control")
+    nav_page_button = types.InlineKeyboardButton(f'{user.page}/{user.max_pages}', callback_data="nav_page_control")
+    nav_next_button = types.InlineKeyboardButton('❯', callback_data="nav_next_control")
+    markup.row(nav_prev_button,nav_page_button,nav_next_button)
     bot.send_message(message.chat.id, msg, reply_markup=markup)
 
 @bot.message_handler(func=lambda message: message.text == "О нас")
@@ -107,7 +110,7 @@ def control(message, user_id = None):
             counter += 1
             button = types.InlineKeyboardButton(f'{str(counter)}. {str(track.artists)} - {str(track.name)}', callback_data=f"selectTrack {track.playlist_id} {counter}")
             buttons_row.append(button)
-            if len(buttons_row) % 10 == 0:
+            if len(buttons_row) % 5 == 0:
                 markup.add(*buttons_row)
                 buttons_row.clear()
         if len(buttons_row) > 0:
@@ -131,6 +134,10 @@ def control(message, user_id = None):
         markup.row(cplaylist_button, shufle_button, ctrack_button)
         markup.add(like_button)
     else:
+        nav_prev_button = types.InlineKeyboardButton('❮', callback_data="nav_prev_control")
+        nav_page_button = types.InlineKeyboardButton(f'{user.page}/{user.max_pages}', callback_data="nav_page_control")
+        nav_next_button = types.InlineKeyboardButton('❯', callback_data="nav_next_control")
+
         prev_button = types.InlineKeyboardButton('Prev', callback_data="prev")
         play_button = types.InlineKeyboardButton('Play/Pause', callback_data="play")
         next_button = types.InlineKeyboardButton('Next', callback_data='next')

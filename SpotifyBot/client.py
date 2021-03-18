@@ -110,6 +110,21 @@ class SpotifyClient():
     def like(self):
         pass
 
+    def __list_to_nav(self,ls):
+            self.page = 1
+            nav = {}
+            l = 1
+            contents_list = []
+            while True:
+                if len(contents_list) != 5 and len(ls) != 0: contents_list.append(ls.pop(0))
+                else:
+                    nav.update([(l,contents_list)]) 
+                    contents_list = []
+                    if len(ls) != 0: l += 1
+                    else: break
+            self.max_pages = l
+            return nav
+
     def get_playlists(self):
         self._check_valid_token()
         headers = {
@@ -123,7 +138,7 @@ class SpotifyClient():
 
         response = r.get("https://api.spotify.com/v1/me/playlists", headers=headers)
         if response.ok:
-            return list(map(lambda x: Playlist(x['id'], x['name']), json.loads(response.text)['items']))
+            return self.__list_to_nav(list(map(lambda x: Playlist(x['id'], x['name']), json.loads(response.text)['items'])))
         return []
 
     def get_music_of_playlist(self, playlist_id):
@@ -146,19 +161,7 @@ class SpotifyClient():
         self.is_current_playlist = True
         tracks = self.get_music_of_playlist(id)
         if len(tracks) != 0:
-            self.is_tracks_in_playlist = True
-            nav = {}
-            l = 1
-            tracks_list = []
-            while True:
-                if len(tracks_list) != 10 and len(tracks) != 0: tracks_list.append(tracks.pop(0))
-                else:
-                    nav.update([(l,tracks_list)]) 
-                    tracks_list = []
-                    if len(tracks) != 0: l += 1
-                    else: break
-            self.max_pages = l
-            return nav
+            return self.__list_to_nav(tracks)
         else: self.is_tracks_in_playlist = False
     def search(self):
         pass
