@@ -13,7 +13,11 @@ class SpotifyClient():
         self._current_playlist = None
         self.tracks = []
         self.is_playing = False
+        self.is_tracks_in_playlist = True
         self.shuffle_state = False
+        self.page = 1
+        self.max_pages = 0
+        self.positions_track = 1
     @property
     def current_track(self):
         player_info = self._get_player_info()
@@ -133,11 +137,27 @@ class SpotifyClient():
 
         self.shuffle_state = not player_info["shuffle_state"]
 
-        response = r.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks?limit=10&market=ES", headers=headers)
+        response = r.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks?limit=90&market=ES", headers=headers)
         if response.ok:
-            return list(map(lambda x: Track(x['track']['id'], x['track']['name'], playlist_id=playlist_id), json.loads(response.text)['items']))
+            return list(map(lambda x: Track(x['track']['id'], x['track']['name'], x['track']['album']['artists'][0]['name'],  playlist_id=playlist_id), json.loads(response.text)['items']))
         return []
-
+    def get_track_in_playlist(self,id):
+        tracks = self.get_music_of_playlist(id)
+        if len(tracks) != 0:
+            self.is_tracks_in_playlist = True
+            nav = {}
+            l = 1
+            tracks_list = []
+            while True:
+                if len(tracks_list) != 10 and len(tracks) != 0: tracks_list.append(tracks.pop(0))
+                else:
+                    nav.update([(l,tracks_list)]) 
+                    tracks_list = []
+                    if len(tracks) != 0: l += 1
+                    else: break
+            self.max_pages = l
+            return nav
+        else: self.is_tracks_in_playlist = False
     def search(self):
         pass
 
