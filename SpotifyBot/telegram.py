@@ -38,13 +38,23 @@ def callback_inline(call):
     elif call.data == "like":
         user.like()
     elif call.data == "nav_prev_control":
+        user.is_current_playlist = True
         if user.page != 1:
-            user.page -= 1
+            user.page_prev
             control(call.message, call.from_user.id)
+    elif call.data == "nav_prev_playlist":
+        if user.page != 1:
+            user.page_prev
+            playlists(call.message, call.from_user.id)
     elif call.data == "nav_next_control":
+        user.is_current_playlist = True
         if user.page != user.max_pages:
-            user.page += 1
+            user.page_next
             control(call.message, call.from_user.id)
+    elif call.data == "nav_next_playlist":
+        if user.page != user.max_pages:
+            user.page_next
+            playlists(call.message, call.from_user.id)
     elif call.data.find("selectPlaylist") != -1:
         idPlaylist = call.data.split(' ')[1]
         tracks = user.get_track_in_playlist(idPlaylist)
@@ -58,8 +68,8 @@ def callback_inline(call):
     bot.answer_callback_query(call.id)
 
 @bot.message_handler(func=lambda message: message.text == "Плейлисты")
-def playlists(message):
-    user = cache_client.take(message.from_user.id)
+def playlists(message, user_id = None):
+    user = cache_client.take(user_id if user_id else message.from_user.id)
 
     if not user:
         send_welcome_callback(message)
@@ -67,17 +77,22 @@ def playlists(message):
 
     if not check_spotify_active(message, user):
         return
-
+    if user.is_current_playlist:
+        user.page = 1
+        user.is_current_playlist = False
     msg = "Ваши плейлисты: \n"
-    playlists = user.get_playlists()[user.page]
+    
+    user.playlists = user.get_playlists()
     markup = types.InlineKeyboardMarkup()
+    playlists = user.playlists[user.page]
+    
     for playlist in playlists:
         button = types.InlineKeyboardButton(playlist.name, callback_data=f"selectPlaylist {playlist.id}")
         markup.add(button)
-    nav_prev_button = types.InlineKeyboardButton('❮', callback_data="nav_prev_control")
-    nav_page_button = types.InlineKeyboardButton(f'{user.page}/{user.max_pages}', callback_data="nav_page_control")
-    nav_next_button = types.InlineKeyboardButton('❯', callback_data="nav_next_control")
-    markup.row(nav_prev_button,nav_page_button,nav_next_button)
+    nav_prev_pl_button = types.InlineKeyboardButton('❮', callback_data="nav_prev_playlist")
+    nav_page_pl_button = types.InlineKeyboardButton(f'{user.page}/{user.max_pages}', callback_data="nav_page_control")
+    nav_next_pl_button = types.InlineKeyboardButton('❯', callback_data="nav_next_playlist")
+    markup.row(nav_prev_pl_button,nav_page_pl_button,nav_next_pl_button)
     bot.send_message(message.chat.id, msg, reply_markup=markup)
 
 @bot.message_handler(func=lambda message: message.text == "О нас")
@@ -98,13 +113,12 @@ def control(message, user_id = None):
     msg = "Ваши треки: \n"
     markup = types.InlineKeyboardMarkup(row_width=1)
 
-
     buttons_row = []
+    if not user.inclube_playlist:
+        user.page = 1
+        user.inclube_playlist = True
     if user.is_current_playlist:
-        if user.page != 1:
-            counter = 10*(user.page - 1)
-        else:
-            counter = 0
+        counter = 5*(user.page - 1)
         tracks = user.tracks[user.page]
         for track in tracks:
             counter += 1
