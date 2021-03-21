@@ -163,7 +163,7 @@ class SpotifyClient():
         self.shuffle_state = not player_info["shuffle_state"]
         response = r.get(f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks?limit=90&market=ES", headers=headers)
         if response.ok:
-            return list(map(lambda x: Track(x['track']['id'], x['track']['name'], x['track']['album']['artists'][0]['name'],  playlist_id=playlist_id), json.loads(response.text)['items']))
+            return list(map(lambda x: Track(x['track']['id'], x['track']['name'], x['track']['album']['artists'],  playlist_id=playlist_id), json.loads(response.text)['items']))
         return []
     def get_track_in_playlist(self,id):
         self.is_current_playlist = True
@@ -199,12 +199,15 @@ class SpotifyClient():
             devices = self._get_devices()
             if len(devices) == 0:
                 return None
+            active_device = list(filter(lambda x: x["is_active"] == True, devices))[0]
             r.put("https://api.spotify.com/v1/me/player?", headers=headers, data=json.dumps({
                 "device_ids": [devices[0]['id']],
                 "play": True
             }))
 
             response = r.get("https://api.spotify.com/v1/me/player", headers=headers)
+            if response.status_code == 204:
+                return None
 
         if response.ok:
             return json.loads(response.text)
