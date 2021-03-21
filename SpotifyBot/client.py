@@ -169,6 +169,7 @@ class SpotifyClient():
         self.is_current_playlist = True
         tracks = self.get_music_of_playlist(id)
         if len(tracks) != 0:
+                self.is_tracks_in_playlist = True
                 return self.list_to_nav(tracks)
         else: self.is_tracks_in_playlist = False
     def search(self):
