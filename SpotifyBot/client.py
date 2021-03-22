@@ -14,7 +14,7 @@ class SpotifyClient():
         self.is_current_playlist = False
         self.tracks = []
         self.playlists = {}
-        self.is_playing = False
+        self.is_playing = "Pause"
         self.is_tracks_in_playlist = True
         self.shuffle_state = False
         self.page = 1
@@ -44,6 +44,14 @@ class SpotifyClient():
     @property
     def page_prev(self):
         self.page -= 1
+    @property
+    def playing(self):
+        player_info = self._get_player_info()
+        is_playing = player_info['is_playing']
+        if is_playing:
+            return 'Pause'
+        else:
+            return 'Play'
 
     def get_me(self):
         self._check_valid_token()
@@ -63,7 +71,6 @@ class SpotifyClient():
         if not player_info:
             return None
         self.is_playing = player_info["is_playing"]
-        
         if track_id:
             data = {
                 "uris": [track_id]
@@ -82,8 +89,10 @@ class SpotifyClient():
 
         if self.is_playing and playlist_id == None and track_id == None:
             response = r.put("https://api.spotify.com/v1/me/player/pause", headers=headers, data=json.dumps(data))
+            self.is_playing = 'Play'
         else:
             response = r.put("https://api.spotify.com/v1/me/player/play", headers=headers, data=json.dumps(data))
+            self.is_playing = 'Pause'
         return response.ok
 
     def next(self):
@@ -199,8 +208,9 @@ class SpotifyClient():
         if response.status_code == 204:
             devices = self._get_devices()
             if len(devices) == 0:
+                self.is_spotify_active = False
                 return None
-            active_device = list(filter(lambda x: x["is_active"] == True, devices))[0]
+            # active_device = list(filter(lambda x: x["is_active"] == True, devices))[0]
             r.put("https://api.spotify.com/v1/me/player?", headers=headers, data=json.dumps({
                 "device_ids": [devices[0]['id']],
                 "play": True
@@ -209,7 +219,6 @@ class SpotifyClient():
             response = r.get("https://api.spotify.com/v1/me/player", headers=headers)
             if response.status_code == 204:
                 return None
-
         if response.ok:
             return json.loads(response.text)
 
