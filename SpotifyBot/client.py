@@ -20,6 +20,8 @@ class SpotifyClient():
         self.page = 1
         self.max_pages = 0
         self.inclube_playlist = False
+        self.repeat_state = 'off'
+
     @property
     def current_track(self):
         player_info = self._get_player_info()
@@ -176,10 +178,40 @@ class SpotifyClient():
         pass
 
     def cycle_track(self):
-        pass
+        self._check_valid_token()
+        headers = {
+            "Authorization": self._get_auth_header()
+        }
+
+        player_info = self._get_player_info()
+        if not player_info:
+            return None
+        
+        if player_info["repeat_state"] == 'off' or 'context':
+            self.repeat_state = 'track'
+        if player_info["repeat_state"] == 'track':
+            self.repeat_state = 'off'
+
+        response = r.put("https://api.spotify.com/v1/me/player/repeat?state=" + str(self.repeat_state), headers=headers)
+        return response.ok
 
     def cycle_playlist(self):
-        pass
+        self._check_valid_token()
+        headers = {
+            "Authorization": self._get_auth_header()
+        }
+
+        player_info = self._get_player_info()
+        if not player_info:
+            return None
+        
+        if player_info["repeat_state"] == 'off' or 'track':
+            self.repeat_state = 'context'
+        if player_info["repeat_state"] == 'context':
+            self.repeat_state = 'off'
+
+        response = r.put("https://api.spotify.com/v1/me/player/repeat?state=" + str(self.repeat_state), headers=headers)
+        return response.ok
 
     def _get_devices(self):
         self._check_valid_token()
