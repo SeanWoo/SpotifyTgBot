@@ -6,13 +6,14 @@ from SpotifyBot import TELEGRAM_TOKEN, SpotifyClient, Session, QueueRepository
 from configReader import SPOTIFY_CLIENT_ID,SPOTIFY_SCOPE
 from telebot import types
 from extensions import log
+import texts_reader as t
 
 cache_client = Session(200)
 queueRepository = QueueRepository()
 
 bot = telebot.TeleBot(TELEGRAM_TOKEN)
 
-help_message = "Благодаря синхронизации Spotify, Вы можете слушать музыку на чём угодно. Наша команда решила создать бота для телеграмма, благодаря которому у Вас появится возможность выполнять различные действия используя телеграмм бота. Функционал бота практически ничем не будет отличаться от обычного плеера или же того же Spotify. Вы с лёгкостью сможете изменять плейлисты и также искать нужные вам треки. \n\n With Spotify synchronization, users are able listen to music nearly on every device. Our team came up with an idea to create a bot for a messenger known as Telegram. With this Bot, users can use messenger just like a regular player, yet many people might think that it would be complicated to use and it would be much easier to use just Spotify app. Nonetheless, our Telegram bot will have same functional as regular app. Without a doubt, users with ease can change playlists, change music or search for it."
+help_message = t.hello_msg()
 
 def start_telegram_bot():
     th = threading.Thread(target=bot.polling)
@@ -67,7 +68,7 @@ def callback_inline(call):
 
     bot.answer_callback_query(call.id)
 
-@bot.message_handler(func=lambda message: message.text == "Плейлисты")
+@bot.message_handler(func=lambda message: message.text == t.msg("playlists"))
 def playlists(message, user_id = None):
     user = cache_client.take(user_id if user_id else message.from_user.id)
 
@@ -80,7 +81,7 @@ def playlists(message, user_id = None):
     if user.is_current_playlist:
         user.page = 1
         user.is_current_playlist = False
-    msg = "Ваши плейлисты: \n"
+    msg = t.msg("your_playlists")
     
     user.playlists = user.get_playlists()
     markup = types.InlineKeyboardMarkup()
@@ -95,11 +96,11 @@ def playlists(message, user_id = None):
     markup.row(nav_prev_pl_button,nav_page_pl_button,nav_next_pl_button)
     bot.send_message(message.chat.id, msg, reply_markup=markup)
 
-@bot.message_handler(func=lambda message: message.text == "О нас")
+@bot.message_handler(func=lambda message: message.text == t.msg("about"))
 def find_track(message):
     bot.send_message(message.chat.id, help_message)
 
-@bot.message_handler(func=lambda message: message.text == "Управление")
+@bot.message_handler(func=lambda message: message.text == t.msg("control"))
 def control(message, user_id = None):
     user = cache_client.take(user_id if user_id else message.from_user.id)
 
@@ -110,7 +111,7 @@ def control(message, user_id = None):
     if not check_spotify_active(message, user):
         return
 
-    msg = "Ваши треки: \n"
+    msg = t.msg("your_tracks")
     markup = types.InlineKeyboardMarkup(row_width=1)
 
     buttons_row = []
@@ -166,9 +167,9 @@ def control(message, user_id = None):
 
     bot.send_message(message.chat.id, msg, reply_markup=markup)
 
-@bot.message_handler(func=lambda message: message.text == "Поиск треков")
+@bot.message_handler(func=lambda message: message.text == t.msg("track_finder"))
 def find_track(message):
-    bot.send_message(message.chat.id, "Поиск треков")
+    bot.send_message(message.chat.id, t.msg("track_finder"))
 
 @bot.message_handler(commands=['start'])
 def send_welcome_callback(message):
@@ -176,29 +177,29 @@ def send_welcome_callback(message):
 
     if user:
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-        playlists_button = types.KeyboardButton('Плейлисты')
-        control_button = types.KeyboardButton('Управление')
-        find_track_button = types.KeyboardButton('Поиск треков')
-        help_button = types.KeyboardButton('О нас')
+        playlists_button = types.KeyboardButton(t.msg("playlists"))
+        control_button = types.KeyboardButton(t.msg("control"))
+        find_track_button = types.KeyboardButton(t.msg("track_finder"))
+        help_button = types.KeyboardButton(t.msg("about"))
         markup.add(playlists_button, control_button, find_track_button, help_button)
 
         user_info = user.get_me()
         if not user_info:
             pass #TODO: Сделать удаление юзера из кэша и базы данных
         username = user_info["display_name"]
-        bot.send_message(message.chat.id, f"Аккаунт {username} был зарегестрирован", reply_markup=markup)
-        log.info(f'User {message.from_user.username}({message.from_user.id}) logged in Spotify account')
+        bot.send_message(message.chat.id, t.msg("registration").format(username), reply_markup=markup)
+        log.info(t.msg("registration_log").format(message.from_user.username,message.from_user.id))
         return
 
     data = queueRepository.get_free_link(message.from_user.id)
     queueRepository.block_link(data[0], message.from_user.id)
 
     link = f"https://accounts.spotify.com/authorize?client_id={SPOTIFY_CLIENT_ID}&response_type=code&scope={SPOTIFY_SCOPE}&redirect_uri={data[2]}"
-    responseMessage = "Привет! Я музыкальный бот. Чтобы начать со мной взаимодействия, авторизируйтесь в Spotify нажав кнопку ниже."
+    responseMessage = t.msg("response_message")
 
     markup = types.InlineKeyboardMarkup()
-    auth_button = types.InlineKeyboardButton('Авторизация', url=link)
-    help_button = types.InlineKeyboardButton('О боте', callback_data='help')
+    auth_button = types.InlineKeyboardButton(t.msg("autorization"), url=link)
+    help_button = types.InlineKeyboardButton(t.msg("about_bot"), callback_data='help')
     markup.add(auth_button, help_button)
 
     bot.send_message(message.chat.id, responseMessage, reply_markup=markup)
@@ -206,13 +207,13 @@ def send_welcome_callback(message):
 def check_spotify_active(message, user):
     if user:
         if not user.is_premium:
-            error_message(message, 'У вас не имеется Premium.') 
+            error_message(message, t.msg("not_premium")) 
             return False
         if not user.is_spotify_active:
-            error_message(message, "Запустите приложение спотифай и включите музыку чтоб получить доступ к Вам")
+            error_message(message, t.msg("not_active"))
             return False
         if not user.is_tracks_in_playlist:
-            error_message(message, 'Пустой плейлист')
+            error_message(message, t.msg("empty_playlist"))
             return False
         return True
     return False
@@ -222,4 +223,4 @@ def error_message(message, msg):
     if user:
         bot.send_message(message.chat.id, msg)
     else:
-        bot.send_message(message.chat.id, "Аккаунт не был зарегестрирован")
+        bot.send_message(message.chat.id, t.msg("not_register"))
