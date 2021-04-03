@@ -64,7 +64,16 @@ def callback_inline(call):
         idAlbum = call.data.split(' ')[1]
         position = int(call.data.split(' ')[2]) - 1
         tracks = user.play(playlist_id=idAlbum, position=position)
-
+#
+    elif call.data == "nav_prev_search":
+        if user.page != 1:
+            user.page_prev
+            search(call.message, call.from_user.id)
+    elif call.data == "nav_next_search":
+        if user.page != user.max_pages:
+            user.page_next
+            search(call.message, call.from_user.id)
+#
     bot.answer_callback_query(call.id)
 
 @bot.message_handler(func=lambda message: message.text == "Плейлисты")
@@ -96,7 +105,7 @@ def playlists(message, user_id = None):
     bot.send_message(message.chat.id, msg, reply_markup=markup)
 
 @bot.message_handler(func=lambda message: message.text == "О нас")
-def find_track(message):
+def find_track(message):                                #точно это название функции?
     bot.send_message(message.chat.id, help_message)
 
 @bot.message_handler(func=lambda message: message.text == "Управление")
@@ -168,7 +177,22 @@ def control(message, user_id = None):
 
 @bot.message_handler(func=lambda message: message.text == "Поиск треков")
 def find_track(message):
+#
+    user = cache_client.take(user_id if user_id else message.from_user.id)
+
+    if not user:
+        send_welcome_callback(message)
+        return
+
+    if not check_spotify_active(message, user):
+        return
+#    
     bot.send_message(message.chat.id, "Поиск треков")
+    user.page = 1
+    
+    
+#
+    pass
 
 @bot.message_handler(commands=['start'])
 def send_welcome_callback(message):

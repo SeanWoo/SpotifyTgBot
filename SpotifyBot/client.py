@@ -174,8 +174,20 @@ class SpotifyClient():
                 self.is_tracks_in_playlist = True
                 return self.list_to_nav(tracks)
         else: self.is_tracks_in_playlist = False
-    def search(self):
-        pass
+        
+    def search(self, str: string, int: count=0, str: typ="track"):
+        self._check_valid_token()
+        headers = {
+            "Authorization": self._get_auth_header()
+        }
+        response = r.get(f"https://api.spotify.com/v1/search?q={string}&type={typ}%2Cartist&market=US&limit=10&offset={count*10}", headers=headers)
+        if response.ok:
+            if typ="track":
+                return list(map(lambda x: Track(x['id'], x['name'],x['artists']), json.loads(response.text)['items']))
+##            if typ="playlist":
+##                return list(map(lambda x: Playlist(x['id'], x['name']), json.loads(response.text)['items']))
+            return []
+
 
     def cycle_track(self):
         self._check_valid_token()
