@@ -68,7 +68,7 @@ class SpotifyClient():
         
         if track_id:
             data = {
-                "uris": [track_id]
+                "uris": [f"spotify:track:{track_id}"]
             }
         elif playlist_id:
             data = {
@@ -175,15 +175,15 @@ class SpotifyClient():
                 return self.list_to_nav(tracks)
         else: self.is_tracks_in_playlist = False
         
-    def search(self, str: string, int: count=0, str: typ="track"):
+    def search(self, string, typ="track"):
         self._check_valid_token()
         headers = {
             "Authorization": self._get_auth_header()
         }
-        response = r.get(f"https://api.spotify.com/v1/search?q={string}&type={typ}%2Cartist&market=US&limit=10&offset={count*10}", headers=headers)
+        response = r.get(f"https://api.spotify.com/v1/search?q={string}&type={typ}%2Cartist&market=US&limit=10&offset={self.page*10}", headers=headers)
         if response.ok:
-            if typ="track":
-                return list(map(lambda x: Track(x['id'], x['name'],x['artists']), json.loads(response.text)['items']))
+            if typ == "track":
+                return list(map(lambda x: Track(x['id'], x['name'], x['artists']), json.loads(response.text)['tracks']['items']))
 ##            if typ="playlist":
 ##                return list(map(lambda x: Playlist(x['id'], x['name']), json.loads(response.text)['items']))
             return []
@@ -244,7 +244,7 @@ class SpotifyClient():
             devices = self._get_devices()
             if len(devices) == 0:
                 return None
-            active_device = list(filter(lambda x: x["is_active"] == True, devices))[0]
+            #active_device = list(filter(lambda x: x["is_active"] == True, devices))[0]
             r.put("https://api.spotify.com/v1/me/player?", headers=headers, data=json.dumps({
                 "device_ids": [devices[0]['id']],
                 "play": True

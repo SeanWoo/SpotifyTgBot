@@ -64,16 +64,19 @@ def callback_inline(call):
         idAlbum = call.data.split(' ')[1]
         position = int(call.data.split(' ')[2]) - 1
         tracks = user.play(playlist_id=idAlbum, position=position)
-#
+    elif call.data.find("selectSingleTrack") != -1:
+        id = call.data.split(' ')[1]
+        tracks = user.play(track_id = id)
+        
     elif call.data == "nav_prev_search":
         if user.page != 1:
             user.page_prev
-            search(call.message, call.from_user.id)
+            next_step_search(message, user_id)
     elif call.data == "nav_next_search":
         if user.page != user.max_pages:
             user.page_next
-            search(call.message, call.from_user.id)
-#
+            next_step_search(message, user_id)
+
     bot.answer_callback_query(call.id)
 
 @bot.message_handler(func=lambda message: message.text == "Плейлисты")
@@ -105,7 +108,7 @@ def playlists(message, user_id = None):
     bot.send_message(message.chat.id, msg, reply_markup=markup)
 
 @bot.message_handler(func=lambda message: message.text == "О нас")
-def find_track(message):                                #точно это название функции?
+def about_us(message):
     bot.send_message(message.chat.id, help_message)
 
 @bot.message_handler(func=lambda message: message.text == "Управление")
@@ -131,7 +134,7 @@ def control(message, user_id = None):
         tracks = user.tracks[user.page]
         for track in tracks:
             counter += 1
-            button = types.InlineKeyboardButton(f'{str(counter)}. {str(track.artists)} - {str(track.name)}', callback_data=f"selectTrack {track.playlist_id} {counter}")
+            button = types.InlineKeyboardButton(f'{str(counter)}. {str(track.artists)} - {str(track.name)}', callback_data=f"selectTrack {track.playlist_id} {counter}" )
             buttons_row.append(button)
             if len(buttons_row) % 5 == 0:
                 markup.add(*buttons_row)
@@ -176,8 +179,7 @@ def control(message, user_id = None):
     bot.send_message(message.chat.id, msg, reply_markup=markup)
 
 @bot.message_handler(func=lambda message: message.text == "Поиск треков")
-def find_track(message):
-#
+def search(message, user_id = None):
     user = cache_client.take(user_id if user_id else message.from_user.id)
 
     if not user:
@@ -186,13 +188,39 @@ def find_track(message):
 
     if not check_spotify_active(message, user):
         return
-#    
-    bot.send_message(message.chat.id, "Поиск треков")
+
+    bot.send_message(message.chat.id, "Введите название трека")
     user.page = 1
     
+    bot.register_next_step_handler(message, next_step_search)
+
+def next_step_search(message, user_id = None):
+    user = cache_client.take(user_id if user_id else message.from_user.id)
+
+    bot.send_message(message.chat.id, f"Вы ввели {message.text}")
+
+    result = user.search(message.text)
+
+    markup = types.InlineKeyboardMarkup(row_width=1)
+
+    buttons_row = []
     
-#
-    pass
+    counter = 5*(user.page - 1)
+
+    for track in result:
+        counter += 1
+        button = types.InlineKeyboardButton(f'{str(counter)}. {str(track.artists)} - {str(track.name)}', callback_data=f"selectSingleTrack {track.id}")
+        buttons_row.append(button)
+
+    markup.add(*buttons_row)
+
+    nav_prev_button = types.InlineKeyboardButton('❮', callback_data="nav_prev_search")
+    nav_page_button = types.InlineKeyboardButton(f'{user.page}/{user.max_pages}', callback_data="nav_page_search")
+    nav_next_button = types.InlineKeyboardButton('❯', callback_data="nav_next_search")
+
+    markup.row(nav_prev_button, nav_page_button, nav_next_button)
+    bot.send_message(message.chat.id, "Вот что мы нашли:", reply_markup=markup)
+
 
 @bot.message_handler(commands=['start'])
 def send_welcome_callback(message):
