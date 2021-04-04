@@ -72,12 +72,12 @@ def callback_inline(call):
         tracks = user.play(track_id = id)
     elif call.data == "nav_prev_search":
         if user.page != 1:
-            user.page_prev
-            next_step_search(message, user_id)
+            user.page_prev()
+            next_step_search(call.message, user.tgid)
     elif call.data == "nav_next_search":
         if user.page != user.max_pages:
-            user.page_next
-            next_step_search(message, user_id)
+            user.page_next()
+            next_step_search(call.message, user.tgid)
     bot.answer_callback_query(call.id)
 
 
