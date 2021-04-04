@@ -239,10 +239,10 @@ def send_welcome_callback(message):
 
     if user:
         markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
-        playlists_button = types.KeyboardButton(t.get_text("playlists"))
-        control_button = types.KeyboardButton(t.get_text("control"))
-        find_track_button = types.KeyboardButton(t.get_text("track_finder"))
-        help_button = types.KeyboardButton(t.get_text("about"))
+        playlists_button = types.KeyboardButton(txt_reader.get_text("playlists"))
+        control_button = types.KeyboardButton(txt_reader.get_text("control"))
+        find_track_button = types.KeyboardButton(txt_reader.get_text("track_finder"))
+        help_button = types.KeyboardButton(txt_reader.get_text("about"))
         markup.add(playlists_button, control_button,
                    find_track_button, help_button)
 
@@ -250,9 +250,9 @@ def send_welcome_callback(message):
         if not user_info:
             pass  # TODO: Сделать удаление юзера из кэша и базы данных
         username = user_info["display_name"]
-        bot.send_message(message.chat.id, t.get_text(
+        bot.send_message(message.chat.id, txt_reader.get_text(
             "registration").format(username), reply_markup=markup)
-        log.info(t.get_text("registration_log").format(
+        log.info(txt_reader.get_text("registration_log").format(
             message.from_user.username, message.from_user.id))
         return
 
@@ -260,13 +260,13 @@ def send_welcome_callback(message):
     queueRepository.block_link(data[0], message.from_user.id)
 
     link = f"https://accounts.spotify.com/authorize?client_id={SPOTIFY_CLIENT_ID}&response_type=code&scope={SPOTIFY_SCOPE}&redirect_uri={data[2]}"
-    responseMessage = t.get_text("response_message")
+    responseMessage = txt_reader.get_text("response_message")
 
     markup = types.InlineKeyboardMarkup()
     auth_button = types.InlineKeyboardButton(
-        t.get_text("autorization"), url=link)
+        txt_reader.get_text("autorization"), url=link)
     help_button = types.InlineKeyboardButton(
-        t.get_text("about_bot"), callback_data='help')
+        txt_reader.get_text("about_bot"), callback_data='help')
     markup.add(auth_button, help_button)
 
     bot.send_message(message.chat.id, responseMessage, reply_markup=markup)
