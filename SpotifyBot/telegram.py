@@ -78,8 +78,6 @@ def callback_inline(call):
         if user.page != user.max_pages:
             user.page_next
             next_step_search(message, user_id)
-
-    bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=control(call.message, user.tgid))
     bot.answer_callback_query(call.id)
 
 
