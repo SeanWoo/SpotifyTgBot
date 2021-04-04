@@ -25,10 +25,13 @@ def callback_inline(call):
        bot.send_message(call.message.chat.id, help_message)
     elif call.data == "play":
         user.play()
+        bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=control(call.message, user.tgid))
     elif call.data == "next":
         user.next()
+        bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=control(call.message, user.tgid))
     elif call.data == "prev":
         user.prev()
+        bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=control(call.message, user.tgid))        
     elif call.data == "cplaylist":
         user.cycle_playlist()
     elif call.data == "shuffle":
@@ -40,26 +43,26 @@ def callback_inline(call):
     elif call.data == "nav_prev_control":
         user.is_current_playlist = True
         if user.page != 1:
-            user.page_prev
-            control(call.message, call.from_user.id)
+            user.page_prev()
+            bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id,text='Выбор трека:', reply_markup=control(call.message, user.tgid))
     elif call.data == "nav_prev_playlist":
         if user.page != 1:
-            user.page_prev
-            playlists(call.message, call.from_user.id)
+            user.page_prev()
+            bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id,text='Выбор плейлиста:', reply_markup=playlists(call.message, user.tgid))
     elif call.data == "nav_next_control":
         user.is_current_playlist = True
         if user.page != user.max_pages:
-            user.page_next
-            control(call.message, call.from_user.id)
+            user.page_next()
+            bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id,text='Выбор трека:', reply_markup=control(call.message, user.tgid))
     elif call.data == "nav_next_playlist":
         if user.page != user.max_pages:
-            user.page_next
-            playlists(call.message, call.from_user.id)
+            user.page_next()
+            bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id,text='Выбор плейлиста:', reply_markup=playlists(call.message, user.tgid))
     elif call.data.find("selectPlaylist") != -1:
         idPlaylist = call.data.split(' ')[1]
         tracks = user.get_track_in_playlist(idPlaylist)
         user.tracks = tracks
-        control(call.message, call.from_user.id)
+        control_nav(call.message, user.tgid)
     elif call.data.find("selectTrack") != -1:
         idAlbum = call.data.split(' ')[1]
         position = int(call.data.split(' ')[2]) - 1
@@ -67,7 +70,6 @@ def callback_inline(call):
     elif call.data.find("selectSingleTrack") != -1:
         id = call.data.split(' ')[1]
         tracks = user.play(track_id = id)
-        
     elif call.data == "nav_prev_search":
         if user.page != 1:
             user.page_prev
@@ -77,12 +79,13 @@ def callback_inline(call):
             user.page_next
             next_step_search(message, user_id)
 
+    bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=control(call.message, user.tgid))
     bot.answer_callback_query(call.id)
 
-@bot.message_handler(func=lambda message: message.text == "Плейлисты")
+
 def playlists(message, user_id = None):
     user = cache_client.take(user_id if user_id else message.from_user.id)
-
+    user.is_tracks_in_playlist = True
     if not user:
         send_welcome_callback(message)
         return
@@ -105,23 +108,20 @@ def playlists(message, user_id = None):
     nav_page_pl_button = types.InlineKeyboardButton(f'{user.page}/{user.max_pages}', callback_data="nav_page_control")
     nav_next_pl_button = types.InlineKeyboardButton('❯', callback_data="nav_next_playlist")
     markup.row(nav_prev_pl_button,nav_page_pl_button,nav_next_pl_button)
-    bot.send_message(message.chat.id, msg, reply_markup=markup)
+    return markup
 
 @bot.message_handler(func=lambda message: message.text == "О нас")
 def about_us(message):
     bot.send_message(message.chat.id, help_message)
 
-@bot.message_handler(func=lambda message: message.text == "Управление")
 def control(message, user_id = None):
     user = cache_client.take(user_id if user_id else message.from_user.id)
-
     if not user:
         send_welcome_callback(message)
         return
 
     if not check_spotify_active(message, user):
         return
-
     msg = "Ваши треки: \n"
     markup = types.InlineKeyboardMarkup(row_width=1)
 
@@ -149,7 +149,7 @@ def control(message, user_id = None):
         markup.row(nav_prev_button, nav_page_button, nav_next_button)
 
         prev_button = types.InlineKeyboardButton('Prev', callback_data="prev")
-        play_button = types.InlineKeyboardButton('Play/Pause', callback_data="play")
+        play_button = types.InlineKeyboardButton(user.playing, callback_data="play")
         next_button = types.InlineKeyboardButton('Next', callback_data='next')
         markup.row(prev_button, play_button, next_button)
         cplaylist_button = types.InlineKeyboardButton('Cycle playlist', callback_data='cplaylist')
@@ -159,24 +159,30 @@ def control(message, user_id = None):
         like_button = types.InlineKeyboardButton('Like', callback_data='like')
         markup.row(cplaylist_button, shufle_button, ctrack_button)
         markup.add(like_button)
-    else:
-        nav_prev_button = types.InlineKeyboardButton('❮', callback_data="nav_prev_control")
-        nav_page_button = types.InlineKeyboardButton(f'{user.page}/{user.max_pages}', callback_data="nav_page_control")
-        nav_next_button = types.InlineKeyboardButton('❯', callback_data="nav_next_control")
+    return markup
 
-        prev_button = types.InlineKeyboardButton('Prev', callback_data="prev")
-        play_button = types.InlineKeyboardButton('Play/Pause', callback_data="play")
-        next_button = types.InlineKeyboardButton('Next', callback_data='next')
-        markup.row(prev_button, play_button, next_button)
-        cplaylist_button = types.InlineKeyboardButton('Cycle playlist', callback_data='cplaylist')
-        shufle_button = types.InlineKeyboardButton('Shuffle', callback_data='shuffle')
-        ctrack_button = types.InlineKeyboardButton('Cycle track', callback_data='ctrack')
+@bot.message_handler(func=lambda message: message.text == "Управление")
+def controls(message):
+    markup = types.InlineKeyboardMarkup()
+    prev_button = types.InlineKeyboardButton('Prev', callback_data="prev")
+    play_button = types.InlineKeyboardButton('Play/Pause', callback_data="play")
+    next_button = types.InlineKeyboardButton('Next', callback_data='next')
+    markup.row(prev_button, play_button, next_button)
+    cplaylist_button = types.InlineKeyboardButton('Cycle playlist', callback_data='cplaylist')
+    shufle_button = types.InlineKeyboardButton('Shuffle', callback_data='shuffle')
+    ctrack_button = types.InlineKeyboardButton('Cycle track', callback_data='ctrack')
 
-        like_button = types.InlineKeyboardButton('Like', callback_data='like')
-        markup.row(cplaylist_button, shufle_button, ctrack_button)
-        markup.add(like_button)
+    like_button = types.InlineKeyboardButton('Like', callback_data='like')
+    markup.row(cplaylist_button, shufle_button, ctrack_button)
+    markup.add(like_button)
+    bot.send_message(chat_id=message.from_user.id, text='Управление',reply_markup=markup)
+def control_nav(message, id):
+    bot.edit_message_text(chat_id=message.chat.id,message_id=message.message_id,text='Выбор трека:', reply_markup=control(message, id))
+@bot.message_handler(func=lambda message: message.text == "Плейлисты")
+def playlists_nav(message):
+    user = cache_client.take(message.from_user.id)
+    bot.send_message(user.tgid,text='Выбор плейлиста', reply_markup=playlists(message))
 
-    bot.send_message(message.chat.id, msg, reply_markup=markup)
 
 @bot.message_handler(func=lambda message: message.text == "Поиск треков")
 def search(message, user_id = None):
@@ -258,19 +264,19 @@ def send_welcome_callback(message):
 def check_spotify_active(message, user):
     if user:
         if not user.is_premium:
-            error_message(message, 'У вас не имеется Premium.') 
+            error_message(message, 'У вас не имеется Premium.', user.tgid) 
             return False
         if not user.is_spotify_active:
-            error_message(message, "Запустите приложение спотифай и включите музыку чтоб получить доступ к Вам")
+            error_message(message, "Запустите приложение спотифай и включите музыку чтоб получить доступ к Вам", user.tgid)
             return False
         if not user.is_tracks_in_playlist:
-            error_message(message, 'Пустой плейлист')
+            error_message(message, 'Пустой плейлист', user.tgid)
             return False
         return True
     return False
-def error_message(message, msg):
-    user = cache_client.take(message.from_user.id)
-
+def error_message(message, msg, user_id):
+    user = cache_client.take(user_id)
+    print(str(user_id)+' error')
     if user:
         bot.send_message(message.chat.id, msg)
     else:
