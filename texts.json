@@ -1,6 +1,7 @@
 {
-    "help_message" : "Благодаря синхронизации Spotify, Вы можете слушать музыку на чём угодно. Наша команда решила создать бота для телеграмма, благодаря которому у Вас появится возможность выполнять различные действия используя телеграмм бота. Функционал бота практически ничем не будет отличаться от обычного плеера или же того же Spotify. Вы с лёгкостью сможете изменять плейлисты и также искать нужные вам треки. \n\n With Spotify synchronization, users are able listen to music nearly on every device. Our team came up with an idea to create a bot for a messenger known as Telegram. With this Bot, users can use messenger just like a regular player, yet many people might think that it would be complicated to use and it would be much easier to use just Spotify app. Nonetheless, our Telegram bot will have same functional as regular app. Without a doubt, users with ease can change playlists, change music or search for it.",
+     
     "ru": {
+        "help_message": "Благодаря синхронизации Spotify, Вы можете слушать музыку на чём угодно. Наша команда решила создать бота для телеграмма, благодаря которому у Вас появится возможность выполнять различные действия используя телеграмм бота. Функционал бота практически ничем не будет отличаться от обычного плеера или же того же Spotify. Вы с лёгкостью сможете изменять плейлисты и также искать нужные вам треки.",
         "playlists":"Плейлисты",
         "about":"О нас",
         "control":"Управление",
