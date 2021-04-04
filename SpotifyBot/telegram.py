@@ -43,20 +43,20 @@ def callback_inline(call):
     elif call.data == "nav_prev_control":
         user.is_current_playlist = True
         if user.page != 1:
-            user.page_prev
+            user.page_prev()
             bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id,text='Выбор трека:', reply_markup=control(call.message, user.tgid))
     elif call.data == "nav_prev_playlist":
         if user.page != 1:
-            user.page_prev
+            user.page_prev()
             bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id,text='Выбор плейлиста:', reply_markup=playlists(call.message, user.tgid))
     elif call.data == "nav_next_control":
         user.is_current_playlist = True
         if user.page != user.max_pages:
-            user.page_next
+            user.page_next()
             bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id,text='Выбор трека:', reply_markup=control(call.message, user.tgid))
     elif call.data == "nav_next_playlist":
         if user.page != user.max_pages:
-            user.page_next
+            user.page_next()
             bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id,text='Выбор плейлиста:', reply_markup=playlists(call.message, user.tgid))
     elif call.data.find("selectPlaylist") != -1:
         idPlaylist = call.data.split(' ')[1]

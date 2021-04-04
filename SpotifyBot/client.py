@@ -40,13 +40,6 @@ class SpotifyClient():
         return me != 'open'
 
     @property
-    def page_next(self):
-        self.page += 1
-
-    @property
-    def page_prev(self):
-        self.page -= 1
-    @property
     def playing(self):
         player_info = self._get_player_info()
         is_playing = player_info['is_playing']
@@ -54,6 +47,12 @@ class SpotifyClient():
             return 'Pause'
         else:
             return 'Play'
+
+    def page_next(self):
+        self.page += 1
+
+    def page_prev(self):
+        self.page -= 1
 
     def get_me(self):
         self._check_valid_token()
