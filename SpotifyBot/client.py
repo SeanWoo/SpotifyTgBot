@@ -5,7 +5,9 @@ import base64
 from SpotifyBot import TokenRepository, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, Playlist, Track
 
 tokenRepository = TokenRepository()
-
+markets = { 'en':'US',
+            'ru':'RU'
+            }
 
 class SpotifyClient():
     def __init__(self, data):
@@ -22,6 +24,8 @@ class SpotifyClient():
         self.max_pages = 0
         self.inclube_playlist = False
         self.repeat_state = 'off'
+        self.language = "ru"
+        
 
     @property
     def current_track(self):
@@ -199,7 +203,7 @@ class SpotifyClient():
         headers = {
             "Authorization": self._get_auth_header()
         }
-        response = r.get(f"https://api.spotify.com/v1/search?q={string}&type={typ}%2Cartist&market=US&limit=10&offset={self.page*10}", headers=headers)
+        response = r.get(f"https://api.spotify.com/v1/search?q={string}&type={typ}%2Cartist&market={markets[self.language]}&limit=10&offset={self.page*10}", headers=headers)
         if response.ok:
             if typ == "track":
                 return list(map(lambda x: Track(x['id'], x['name'], x['artists']), json.loads(response.text)['tracks']['items']))
