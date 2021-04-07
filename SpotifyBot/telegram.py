@@ -28,36 +28,38 @@ def callback_inline(call):
         bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_control(user))
     elif call.data == "next":
         user.next()
-        if user.is_playing == 'Play':
-            bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_control(user))
     elif call.data == "prev":
         user.prev()
-        if user.is_playing == 'Play':
-            bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_control(user))
     elif call.data == "cplaylist":
         user.cycle_playlist()
     elif call.data == "shuffle":
         user.shuffle()
     elif call.data == "ctrack":
         user.cycle_track()
-    elif call.data == "like":
-        user.like()
     elif call.data == "nav_prev_control":
         if user.pageManagerTracks.page != 1:
             user.pageManagerTracks.page -= 1
             bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id,text=txt_reader.get_text("select_track"), reply_markup=get_inline_tracks_of_playlist(user))
-    elif call.data == "nav_prev_playlist":
-        if user.pageManagerPlaylist.page != 1:
-            user.pageManagerPlaylist.page -= 1
-            bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id,text=txt_reader.get_text("select_playlist"), reply_markup=get_inline_playlist(user))
     elif call.data == "nav_next_control":
         if user.pageManagerTracks.page != user.pageManagerTracks.max_pages:
             user.pageManagerTracks.page += 1
             bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id,text=txt_reader.get_text("select_track"), reply_markup=get_inline_tracks_of_playlist(user))
-    elif call.data == "nav_next_playlist":
-        if user.pageManagerPlaylist.page != user.pageManagerPlaylist.max_pages:
-            user.pageManagerPlaylist.page += 1
+    elif call.data == "nav_prev_playlist":
+        if user.pageManagerPlaylists.page != 1:
+            user.pageManagerPlaylists.page -= 1
             bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id,text=txt_reader.get_text("select_playlist"), reply_markup=get_inline_playlist(user))
+    elif call.data == "nav_next_playlist":
+        if user.pageManagerPlaylists.page != user.pageManagerPlaylists.max_pages:
+            user.pageManagerPlaylists.page += 1
+            bot.edit_message_text(chat_id = call.message.chat.id, message_id = call.message.message_id,text=txt_reader.get_text("select_playlist"), reply_markup=get_inline_playlist(user))
+    elif call.data == "nav_prev_search":
+        if user.pageManagerTracks.page != 1:
+            user.pageManagerTracks.page -= 1
+            bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_search_tracks(user))        
+    elif call.data == "nav_next_search":
+        if user.pageManagerTracks.page != user.pageManagerTracks.max_pages:
+            user.pageManagerTracks.page += 1
+            bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_search_tracks(user))        
     elif call.data.find("selectPlaylist") != -1:
         idPlaylist = call.data.split(' ')[1]
         user.get_tracks_of_playlist(idPlaylist)
@@ -69,14 +71,6 @@ def callback_inline(call):
     elif call.data.find("selectTracks") != -1:
         position = int(call.data.split(' ')[1]) - 1
         user.play(use_current_tracks = True, position = position)
-    elif call.data == "nav_prev_search":
-        if user.pageManagerTracks.page != 1:
-            user.pageManagerTracks.page -= 1
-            bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_search_tracks(user))        
-    elif call.data == "nav_next_search":
-        if user.pageManagerTracks.page != user.pageManagerTracks.max_pages:
-            user.pageManagerTracks.page += 1
-            bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_search_tracks(user))        
     bot.answer_callback_query(call.id)
 
 
@@ -88,6 +82,13 @@ def about_us(message):
 def playlists(message):
     user = cache_client.take(message.from_user.id)
 
+    if not user:
+        send_welcome_callback(message)
+        return
+
+    if not check_spotify_active(message, user):
+        return
+
     user.get_playlists()
 
     bot.send_message(user.tgid, text=txt_reader.get_text("select_playlist"), reply_markup=get_inline_playlist(user))
@@ -95,6 +96,20 @@ def playlists(message):
 @bot.message_handler(func=lambda message: message.text == txt_reader.get_text('control'))
 def control(message):
     user = cache_client.take(message.from_user.id)
+
+    if not user:
+        send_welcome_callback(message)
+        return
+
+    if not check_spotify_active(message, user):
+        return
+
+    if user.pageManagerTracks == None:
+        data = user.get_player()
+        if data["context"]["type"] == "playlist":
+            playlistId = data["context"]["uri"].split(":")[-1]
+            user.get_tracks_of_playlist(playlistId)
+
     bot.send_message(user.tgid, text=txt_reader.get_text('control'), reply_markup=get_inline_control(user))
 
 @bot.message_handler(func=lambda message: message.text == txt_reader.get_text("track_finder"))
@@ -152,9 +167,6 @@ def check_spotify_active(message, user):
             return False
         if not user.is_spotify_active:
             error_message(message, txt_reader.get_text("not_active"), user.tgid)
-            return False
-        if not user.is_tracks_in_playlist:
-            error_message(message, txt_reader.get_text("empty_playlist"), user.tgid)
             return False
         return True
     return False

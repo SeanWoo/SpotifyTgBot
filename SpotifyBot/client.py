@@ -11,16 +11,13 @@ class SpotifyClient():
     def __init__(self, data):
         self.Id, self.tgid, self.access_token, self.refresh_token, self.expires_in, self.registration_at = data
         self.pageManagerTracks = None
-        self.pageManagerPlaylist = None
+        self.pageManagerPlaylists = None
         self.is_tracks_in_playlist = True
         self.shuffle_state = False
         self.inclube_playlist = False
         self.repeat_state = 'off'
-        self.last_message = None
         self.language = "ru"
 
-        self._current_track = None
-        self._current_playlist = None
         self._is_playing = False
         
 
@@ -57,6 +54,15 @@ class SpotifyClient():
             "Authorization": self._get_auth_header()
         }
         response = r.get("https://api.spotify.com/v1/me", headers=headers)
+        if response.ok:
+            return json.loads(response.text)
+
+    def get_player(self):
+        self._check_valid_token()
+        headers = {
+            "Authorization": self._get_auth_header()
+        }
+        response = r.get("https://api.spotify.com/v1/me/player", headers=headers)
         if response.ok:
             return json.loads(response.text)
 
@@ -144,8 +150,8 @@ class SpotifyClient():
             "https://api.spotify.com/v1/me/playlists", headers=headers)
         if response.ok:
             result = list(map(lambda x: Playlist(x['id'], x['name']), json.loads(response.text)['items']))
-            self.pageManagerPlaylist = PageManager(result)
-            return self.pageManagerPlaylist
+            self.pageManagerPlaylists = PageManager(result)
+            return self.pageManagerPlaylists
         return []
 
     def get_tracks_of_playlist(self, playlist_id):
