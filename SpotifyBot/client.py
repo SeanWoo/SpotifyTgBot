@@ -22,6 +22,7 @@ class SpotifyClient():
         self.max_pages = 0
         self.inclube_playlist = False
         self.repeat_state = 'off'
+        self.last_message = None
 
     @property
     def current_track(self):
@@ -194,15 +195,16 @@ class SpotifyClient():
                 return self.list_to_nav(tracks)
         else: self.is_tracks_in_playlist = False
         
-    def search(self, string, typ="track"):
+    def search(self, typ="track"):
         self._check_valid_token()
         headers = {
             "Authorization": self._get_auth_header()
         }
-        response = r.get(f"https://api.spotify.com/v1/search?q={string}&type={typ}%2Cartist&market=US&limit=10&offset={self.page*10}", headers=headers)
+        response = r.get(f"https://api.spotify.com/v1/search?q={self.last_message}&type={typ}%2Cartist&market=US&offset={self.page*10}", headers=headers)
         if response.ok:
             if typ == "track":
-                return list(map(lambda x: Track(x['id'], x['name'], x['artists']), json.loads(response.text)['tracks']['items']))
+                result = list(map(lambda x: Track(x['id'], x['name'], x['artists']), json.loads(response.text)['tracks']['items']))
+                return self.list_to_nav(result)
 ##            if typ="playlist":
 ##                return list(map(lambda x: Playlist(x['id'], x['name']), json.loads(response.text)['items']))
             return []
