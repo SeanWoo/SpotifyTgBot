@@ -156,7 +156,7 @@ def send_welcome_callback(message):
 def next_step_search(message, user_id = None):
     user = cache_client.take(user_id if user_id else message.from_user.id)
 
-    result = user.search(message.text)
+    user.search(message.text)
     
     bot.send_message(chat_id=message.chat.id, text=txt_reader.get_text("search_result").format(message.text), reply_markup=get_inline_search_tracks(user))
 
@@ -173,7 +173,6 @@ def check_spotify_active(message, user):
 
 def error_message(message, msg, user_id):
     user = cache_client.take(user_id)
-    print(str(user_id)+' error')
     if user:
         bot.send_message(message.chat.id, msg)
     else:

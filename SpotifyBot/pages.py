@@ -5,10 +5,6 @@ class PageManager:
         self.chunk = 5
         self.raw_data = list(data)
         self.data = self.cast_to_nav(data)
-        
-    @property
-    def is_empty():
-        return len(raw_data) == 0
 
     def cast_to_nav(self, data):
         nav = {}
