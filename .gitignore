@@ -6,5 +6,6 @@ __pycache__/
 config_*
 config.*
 .env
+data/
 *log.txt
 *DS_Store*

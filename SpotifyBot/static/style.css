@@ -1,0 +1,31 @@
+*{
+	margin:0px;
+	padding:0px;
+}
+@media (max-width:600px){
+    body{
+        height: 50%;
+        width:50%;
+        display: inline;
+    }  
+}
+
+
+html{
+    margin:auto;
+    width:100%;
+    background: url(source/pfon1.png),
+                url(source/fon.png);                            
+}
+.limit{
+    justify-content: center;
+    text-align: center;
+    font-family:'Oswald', sans-serif;
+}
+.limit img{
+    margin:auto;
+    width: 300px;
+} 
+.limit h1{
+    margin:10px;
+}

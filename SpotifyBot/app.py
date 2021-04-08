@@ -2,7 +2,7 @@ import os
 import json
 from flask import Flask, session, request, redirect, jsonify
 from flask_session import Session
-from extensions import db, initDb, log
+from extensions import db, initDb, userlog
 from SpotifyBot import DATABASE_CONNECT, start_telegram_bot, api_blueprint
 import time
 from loger import get_logger

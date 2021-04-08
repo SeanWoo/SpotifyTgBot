@@ -11,7 +11,7 @@ services:
       MYSQL_PASSWORD: $USER_PASSWORD
       MYSQL_ROOT_PASSWORD: MYSQL_RANDOM_PASSWORD
     volumes: 
-      - ./:/etc/mysql/data
+      - ./data:/var/lib/mysql
   server:
     env_file: .env
     build: .

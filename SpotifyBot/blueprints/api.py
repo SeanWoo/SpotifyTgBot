@@ -3,7 +3,7 @@ import base64
 import json
 import requests as r
 import datetime, time
-from flask import session, request, jsonify
+from flask import session, request, jsonify, render_template
 from flask import Blueprint
 from extensions import db
 from SpotifyBot import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_SCOPE, QueueRepository, TokenRepository
@@ -33,8 +33,11 @@ def callback(urlid):
         })
         tokens = json.loads(response.text)
         
+        if tokens.get("access_token") == None:
+            return jsonify({'error_code': 'not_valid'})
+
         tokenRepository.add_token(data[1], tokens["access_token"], tokens["refresh_token"], tokens["expires_in"])
 
-        return jsonify({'error_code': 'ok'})
+        return render_template('index.html')
     return jsonify({'error_code': 'not_valid'})
 
