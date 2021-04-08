@@ -10,8 +10,8 @@ tokenRepository = TokenRepository()
 class SpotifyClient():
     def __init__(self, data):
         self.Id, self.tgid, self.access_token, self.refresh_token, self.expires_in, self.registration_at = data
-        self.pageManagerTracks = None
-        self.pageManagerPlaylists = None
+        self.pageManagerTracks = PageManager([])
+        self.pageManagerPlaylists = PageManager([])
         self.is_tracks_in_playlist = True
         self.shuffle_state = False
         self.inclube_playlist = False
