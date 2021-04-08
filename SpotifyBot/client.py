@@ -177,7 +177,6 @@ class SpotifyClient():
         response = r.get(
             f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks?limit=90&market=ES", headers=headers)
         if response.ok:
-            errorlog.warn(response.text)
             result = list(map(lambda x: Track(x['track']['id'], x['track']['name'], x['track']['album']['artists'],  playlist_id=playlist_id), json.loads(response.text)['items']))
             self.pageManagerTracks = PageManager(result)
             return self.pageManagerTracks
