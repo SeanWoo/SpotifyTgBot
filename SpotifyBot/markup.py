@@ -67,9 +67,12 @@ def get_inline_playlist(user):
         for playlist in user.pageManagerPlaylists[user.pageManagerPlaylists.page]:
             button = types.InlineKeyboardButton(playlist.name, callback_data=f"selectPlaylist {playlist.id}")
             markup.add(button)
+        
+        nav_page_pl_button = types.InlineKeyboardButton(f'{user.pageManagerPlaylists.page}/{user.pageManagerPlaylists.max_pages}', callback_data="nav_page_control")
+    else:
+        nav_page_pl_button = types.InlineKeyboardButton(f'{1}/{1}', callback_data="nav_page_control")
 
     nav_prev_pl_button = types.InlineKeyboardButton('❮', callback_data="nav_prev_playlist")
-    nav_page_pl_button = types.InlineKeyboardButton(f'{user.pageManagerPlaylists.page}/{user.pageManagerPlaylists.max_pages}', callback_data="nav_page_control")
     nav_next_pl_button = types.InlineKeyboardButton('❯', callback_data="nav_next_playlist")
 
     markup.row(nav_prev_pl_button, nav_page_pl_button, nav_next_pl_button)
@@ -86,9 +89,11 @@ def get_inline_tracks_of_playlist(user):
             button = types.InlineKeyboardButton(
                 text=f'{str(counter)}. {str(track.artists)} - {str(track.name)}', callback_data=f"selectTrackByPlaylistId {track.playlist_id} {counter}")
             markup.add(button)
+        nav_page_pl_button = types.InlineKeyboardButton(f'{user.pageManagerTracks.page}/{user.pageManagerTracks.max_pages}', callback_data="nav_page_control")
+    else:
+        nav_page_pl_button = types.InlineKeyboardButton(f'{1}/{1}', callback_data="nav_page_control")
 
     nav_prev_pl_button = types.InlineKeyboardButton('❮', callback_data="nav_prev_control")
-    nav_page_pl_button = types.InlineKeyboardButton(f'{user.pageManagerTracks.page}/{user.pageManagerTracks.max_pages}', callback_data="nav_page_control")
     nav_next_pl_button = types.InlineKeyboardButton('❯', callback_data="nav_next_control")
 
     markup.row(nav_prev_pl_button, nav_page_pl_button, nav_next_pl_button)
@@ -105,13 +110,12 @@ def get_inline_search_tracks(user):
             button = types.InlineKeyboardButton(
                 text=f'{str(counter)}. {str(track.artists)} - {str(track.name)}', callback_data=f"selectTracks {counter}")
             markup.add(button)
-
-    nav_prev_button = types.InlineKeyboardButton(
-        '❮', callback_data="nav_prev_search")
-    nav_page_button = types.InlineKeyboardButton(
-        f'{user.pageManagerTracks.page}/{user.pageManagerTracks.max_pages}', callback_data="nav_page_search")
-    nav_next_button = types.InlineKeyboardButton(
-        '❯', callback_data="nav_next_search")
+        nav_page_button = types.InlineKeyboardButton(f'{user.pageManagerTracks.page}/{user.pageManagerTracks.max_pages}', callback_data="nav_page_search")
+    else:
+        nav_page_button = types.InlineKeyboardButton(f'{1}/{1}', callback_data="nav_page_search")
+        
+    nav_prev_button = types.InlineKeyboardButton('❮', callback_data="nav_prev_search")
+    nav_next_button = types.InlineKeyboardButton('❯', callback_data="nav_next_search")
 
     markup.row(nav_prev_button, nav_page_button, nav_next_button)
     return markup
