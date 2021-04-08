@@ -1,7 +1,7 @@
 from telebot import types, TeleBot
 import texts_reader as txt_reader
 from SpotifyBot import PageManager
-from extensions import log
+from extensions import userlog
 
 def get_inline_auth_panel(link):
     markup = types.InlineKeyboardMarkup()

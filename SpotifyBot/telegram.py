@@ -2,10 +2,10 @@ import telebot
 import requests
 import threading
 import time
-from SpotifyBot import TELEGRAM_TOKEN, SpotifyClient, Session, QueueRepository, get_reply_panel, get_inline_control, get_inline_auth_panel, get_inline_playlist, get_inline_tracks_of_playlist, get_inline_search_tracks
+from SpotifyBot import TELEGRAM_TOKEN, SpotifyClient, Session, QueueRepository, get_reply_panel, get_inline_control, get_inline_auth_panel, get_inline_playlist, get_inline_tracks_of_playlist, get_inline_search_tracks, TelegramError
 from configReader import SPOTIFY_CLIENT_ID, SPOTIFY_SCOPE
 from telebot import types
-from extensions import log
+from extensions import userlog
 import texts_reader as txt_reader
 
 cache_client = Session(200)
@@ -24,12 +24,20 @@ def callback_inline(call):
     if call.data == 'help':
         bot.send_message(call.message.chat.id, txt_reader.get_text("help_message"))
     elif call.data == "play":
+        old_playing_state = user.is_playing
         user.play()
-        bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_control(user))
+        if old_playing_state != user.is_playing:
+            bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_control(user))
     elif call.data == "next":
+        old_playing_state = user.is_playing
         user.next()
+        if old_playing_state != user.is_playing:
+            bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_control(user))
     elif call.data == "prev":
+        old_playing_state = user.is_playing
         user.prev()
+        if old_playing_state != user.is_playing:
+            bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_control(user))
     elif call.data == "cplaylist":
         user.cycle_playlist()
     elif call.data == "shuffle":
@@ -67,7 +75,11 @@ def callback_inline(call):
     elif call.data.find("selectTrackByPlaylistId") != -1:
         idAlbum = call.data.split(' ')[1]
         position = int(call.data.split(' ')[2]) - 1
+
+        old_playing_state = user.is_playing
         user.play(playlist_id = idAlbum, position = position)
+        if old_playing_state != user.is_playing:
+            bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_control(user))
     elif call.data.find("selectTracks") != -1:
         position = int(call.data.split(' ')[1]) - 1
         user.play(use_current_tracks = True, position = position)
@@ -89,7 +101,9 @@ def playlists(message):
     if not check_spotify_active(message, user):
         return
 
-    user.get_playlists()
+    result = user.get_playlists()
+    if isinstance(result, TelegramError):
+        error_message(message, f"Status: {result.status} Message: {result.message}", user.tgid)
 
     bot.send_message(user.tgid, text=txt_reader.get_text("select_playlist"), reply_markup=get_inline_playlist(user))
 
@@ -106,9 +120,13 @@ def control(message):
 
     if user.pageManagerTracks == None:
         data = user.get_player()
+        if isinstance(data, TelegramError):
+            error_message(message, f"Status: {data.status} Message: {data.message}", user.tgid)
         if data["context"]["type"] == "playlist":
             playlistId = data["context"]["uri"].split(":")[-1]
-            user.get_tracks_of_playlist(playlistId)
+            result = user.get_tracks_of_playlist(playlistId)
+            if isinstance(result, TelegramError):
+                error_message(message, f"Status: {result.status} Message: {result.message}", user.tgid)
 
     bot.send_message(user.tgid, text=txt_reader.get_text('control'), reply_markup=get_inline_control(user))
 
@@ -140,7 +158,7 @@ def send_welcome_callback(message):
         username = user_info["display_name"]
         bot.send_message(message.chat.id, txt_reader.get_text(
             "registration").format(username), reply_markup=get_reply_panel())
-        log.info(txt_reader.get_text("registration_log").format(
+        userlog.info(txt_reader.get_text("registration_log").format(
             message.from_user.username, message.from_user.id))
         return
 
@@ -162,11 +180,9 @@ def next_step_search(message, user_id = None):
 
 def check_spotify_active(message, user):
     if user:
-        if not user.is_premium:
-            error_message(message, txt_reader.get_text("not_premium"), user.tgid) 
+        if _check_error(message, user, user.is_premium, "not_premium"):
             return False
-        if not user.is_spotify_active:
-            error_message(message, txt_reader.get_text("not_active"), user.tgid)
+        elif _check_error(message, user, user.is_spotify_active, "not_active"):
             return False
         return True
     return False
@@ -177,3 +193,14 @@ def error_message(message, msg, user_id):
         bot.send_message(message.chat.id, msg)
     else:
         bot.send_message(message.chat.id, txt_reader.get_text("not_register"))
+
+def _check_error(message, user, data, idText):
+    if isinstance(data, TelegramError):
+        if data.status == 429:
+            error_message(message, txt_reader.get_text("rate_limit"), user.tgid) 
+        return True
+    else:
+        if not data:
+            error_message(message, txt_reader.get_text(idText), user.tgid) 
+            return True
+        return False

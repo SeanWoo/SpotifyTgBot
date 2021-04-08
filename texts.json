@@ -20,7 +20,9 @@
         "autorization":"Авторизация",
         "about_bot":"О боте",
         "select_track": "Выбор трека:",
-        "select_playlist": "Выбор плейлиста:"
+        "select_playlist": "Выбор плейлиста:", 
+        "rate_limit": "Не думай что если будешь спамить то сломаешь бота",
+        "error_get_playlist": "Не удалось получить плейлисты"
     },
     "en": {
         "market": "US"

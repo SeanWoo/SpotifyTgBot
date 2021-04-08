@@ -2,8 +2,9 @@ import requests as r
 import json
 import datetime
 import base64
-from SpotifyBot import TokenRepository, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, Playlist, Track, PageManager
+from SpotifyBot import TokenRepository, SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, Playlist, Track, PageManager, TelegramError
 import texts_reader as txt_reader
+from extensions import errorlog
 
 tokenRepository = TokenRepository()
 
@@ -23,26 +24,32 @@ class SpotifyClient():
 
     @property
     def current_track(self):
-        player_info = self._get_player_info()
-        if not player_info:
-            return None
+        player_info = self.get_player()
+        if isinstance(player_info, TelegramError):
+            return player_info
         return Track(player_info['track']['id'], player_info['track']['name'], player_info['track']['album']['artists'])
 
     @property
     def is_spotify_active(self):
         devices = self._get_devices()
+        if isinstance(devices, TelegramError):
+            return devices
         return len(devices) != 0
 
     @property
     def is_premium(self):
-        me = self.get_me()["product"]
-        return me != 'open'
+        me = self.get_me()
+        if isinstance(me, TelegramError):
+            return me
+        return me["product"] != 'open'
 
     @property
     def is_playing(self):
-        player_info = self._get_player_info()
-        _is_playing = player_info['is_playing']
-        return _is_playing
+        player_info = self.get_player()
+        if isinstance(player_info, TelegramError):
+            return TelegramError(player_info)
+        
+        return self._is_playing
     
     @is_playing.setter
     def is_playing(self, value):
@@ -56,25 +63,18 @@ class SpotifyClient():
         response = r.get("https://api.spotify.com/v1/me", headers=headers)
         if response.ok:
             return json.loads(response.text)
-
-    def get_player(self):
-        self._check_valid_token()
-        headers = {
-            "Authorization": self._get_auth_header()
-        }
-        response = r.get("https://api.spotify.com/v1/me/player", headers=headers)
-        if response.ok:
-            return json.loads(response.text)
+        else:
+            return TelegramError(json.loads(response.text))
 
     def play(self, use_current_tracks=False, playlist_id=None, position=0):
         self._check_valid_token()
         headers = {
             "Authorization": self._get_auth_header()
         }
-        player_info = self._get_player_info()
-        if not player_info:
-            return None
-        self.is_playing = player_info["is_playing"]
+        player_info = self.get_player()
+        if isinstance(player_info, TelegramError):
+            return player_info
+
         if use_current_tracks:
             data = {
                 "uris": ["spotify:track:" + track.id for track in self.pageManagerTracks.raw_data],
@@ -108,6 +108,11 @@ class SpotifyClient():
         headers = {
             "Authorization": self._get_auth_header()
         }
+
+        player_info = self.get_player()
+        if isinstance(player_info, TelegramError):
+            return player_info
+
         response = r.post(
             "https://api.spotify.com/v1/me/player/next", headers=headers)
         return response.ok
@@ -117,6 +122,11 @@ class SpotifyClient():
         headers = {
             "Authorization": self._get_auth_header()
         }
+
+        player_info = self.get_player()
+        if isinstance(player_info, TelegramError):
+            return player_info
+        
         response = r.post(
             "https://api.spotify.com/v1/me/player/previous", headers=headers)
         return response.ok
@@ -127,10 +137,9 @@ class SpotifyClient():
             "Authorization": self._get_auth_header()
         }
 
-        player_info = self._get_player_info()
-        if not player_info:
-            return None
-        self.shuffle_state = not player_info["shuffle_state"]
+        player_info = self.get_player()
+        if isinstance(player_info, TelegramError):
+            return player_info
 
         response = r.put("https://api.spotify.com/v1/me/player/shuffle?state=" +
                          str(self.shuffle_state), headers=headers)
@@ -142,9 +151,9 @@ class SpotifyClient():
             "Authorization": self._get_auth_header()
         }
 
-        player_info = self._get_player_info()
-        if not player_info:
-            return []
+        player_info = self.get_player()
+        if isinstance(player_info, TelegramError):
+            return player_info
 
         response = r.get(
             "https://api.spotify.com/v1/me/playlists", headers=headers)
@@ -152,7 +161,8 @@ class SpotifyClient():
             result = list(map(lambda x: Playlist(x['id'], x['name']), json.loads(response.text)['items']))
             self.pageManagerPlaylists = PageManager(result)
             return self.pageManagerPlaylists
-        return []
+        else:
+            return TelegramError(json.loads(response.text))
 
     def get_tracks_of_playlist(self, playlist_id):
         self._check_valid_token()
@@ -160,18 +170,19 @@ class SpotifyClient():
             "Authorization": self._get_auth_header()
         }
 
-        player_info = self._get_player_info()
-        if not player_info:
-            return None
+        player_info = self.get_player()
+        if isinstance(player_info, TelegramError):
+            return player_info
 
         response = r.get(
             f"https://api.spotify.com/v1/playlists/{playlist_id}/tracks?limit=90&market=ES", headers=headers)
         if response.ok:
+            errorlog.warn(response.text)
             result = list(map(lambda x: Track(x['track']['id'], x['track']['name'], x['track']['album']['artists'],  playlist_id=playlist_id), json.loads(response.text)['items']))
             self.pageManagerTracks = PageManager(result)
             return self.pageManagerTracks
-
-        return []
+        else:
+            return TelegramError(json.loads(response.text))
         
     def search(self, message, typ="track"):
         self._check_valid_token()
@@ -186,6 +197,8 @@ class SpotifyClient():
                 self.pageManagerTracks = PageManager(result)
                 return self.pageManagerTracks
             return []
+        else:
+            return TelegramError(json.loads(response.text))
 
     def cycle_track(self):
         self._check_valid_token()
@@ -193,17 +206,14 @@ class SpotifyClient():
             "Authorization": self._get_auth_header()
         }
 
-        player_info = self._get_player_info()
-        if not player_info:
-            return None
-
-        if player_info["repeat_state"] == 'off' or 'context':
-            self.repeat_state = 'track'
-        if player_info["repeat_state"] == 'track':
-            self.repeat_state = 'off'
+        player_info = self.get_player()
+        if isinstance(player_info, TelegramError):
+            return player_info
 
         response = r.put("https://api.spotify.com/v1/me/player/repeat?state=" +
                          str(self.repeat_state), headers=headers)
+        if not response.ok:
+            return TelegramError(json.loads(response.text))
         return response.ok
 
     def cycle_playlist(self):
@@ -212,17 +222,14 @@ class SpotifyClient():
             "Authorization": self._get_auth_header()
         }
 
-        player_info = self._get_player_info()
-        if not player_info:
-            return None
-
-        if player_info["repeat_state"] == 'off' or 'track':
-            self.repeat_state = 'context'
-        if player_info["repeat_state"] == 'context':
-            self.repeat_state = 'off'
+        player_info = self.get_player()
+        if isinstance(player_info, TelegramError):
+            return player_info
 
         response = r.put("https://api.spotify.com/v1/me/player/repeat?state=" +
                          str(self.repeat_state), headers=headers)
+        if not response.ok:
+            return TelegramError(json.loads(response.text))
         return response.ok
 
     def _get_devices(self):
@@ -234,30 +241,49 @@ class SpotifyClient():
             "https://api.spotify.com/v1/me/player/devices", headers=headers)
         if response.ok:
             return json.loads(response.text)["devices"]
+        else:
+            return TelegramError(json.loads(response.text))
 
-    def _get_player_info(self):
+    def get_player(self):
         self._check_valid_token()
         headers = {
             "Authorization": self._get_auth_header()
         }
-        response = r.get(
-            "https://api.spotify.com/v1/me/player", headers=headers)
+        response = r.get("https://api.spotify.com/v1/me/player", headers=headers)
         if response.status_code == 204:
             devices = self._get_devices()
-            if len(devices) == 0:
-                return None
+            if isinstance(devices, TelegramError):
+                return devices
+            elif len(devices) == 0:
+                return TelegramError({"status": 1000, "message": "Empty devices"})
             #active_device = list(filter(lambda x: x["is_active"] == True, devices))[0]
-            r.put("https://api.spotify.com/v1/me/player?", headers=headers, data=json.dumps({
+            response = r.put("https://api.spotify.com/v1/me/player?", headers=headers, data=json.dumps({
                 "device_ids": [devices[0]['id']],
                 "play": True
             }))
+            if not response.ok:
+                return TelegramError({"status": 1001, "message": "Couldn't activate the device"})
 
-            response = r.get(
-                "https://api.spotify.com/v1/me/player", headers=headers)
+            response = r.get("https://api.spotify.com/v1/me/player", headers=headers)
             if response.status_code == 204:
-                return None
+                return TelegramError({"status": 1001, "message": "Couldn't activate the device"})
+            elif not response.ok:
+                return TelegramError(json.loads(response.text))
+        elif not response.ok:
+            return TelegramError(json.loads(response.text))
+
         if response.ok:
-            return json.loads(response.text)
+            result = json.loads(response.text)
+            self.is_playing = result["is_playing"]
+            self.shuffle_state = result["shuffle_state"]
+
+            if result["repeat_state"] == 'off' or 'track':
+                self.repeat_state = 'context'
+            if result["repeat_state"] == 'context':
+                self.repeat_state = 'off'
+
+            return result
+        
 
     def _check_valid_token(self):
         if self.registration_at + datetime.timedelta(seconds=self.expires_in) <= datetime.datetime.today():
