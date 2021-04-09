@@ -26,8 +26,9 @@ def callback_inline(call):
     elif call.data == "play":
         old_playing_state = user.is_playing
         user.play()
-        if old_playing_state != user.is_playing:
-            bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_control(user))
+        #if old_playing_state != user.is_playing:
+            #TODO: исправить баг с не изменным маркупом
+            #bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_control(user))
     elif call.data == "next":
         old_playing_state = user.is_playing
         user.next()
