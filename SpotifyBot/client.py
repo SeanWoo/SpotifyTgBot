@@ -22,6 +22,7 @@ class SpotifyClient():
         self._is_playing = False
         
 
+
     @property
     def current_track(self):
         player_info = self.get_player()
@@ -47,7 +48,7 @@ class SpotifyClient():
     def is_playing(self):
         player_info = self.get_player()
         if isinstance(player_info, TelegramError):
-            return TelegramError(player_info)
+            return player_info
         
         return self._is_playing
     
@@ -246,7 +247,7 @@ class SpotifyClient():
     def get_player(self):
         self._check_valid_token()
         headers = {
-            "Authorization": self._get_auth_header()
+          "Authorization": self._get_auth_header()
         }
         response = r.get("https://api.spotify.com/v1/me/player", headers=headers)
         if response.status_code == 204:
@@ -254,34 +255,34 @@ class SpotifyClient():
             if isinstance(devices, TelegramError):
                 return devices
             elif len(devices) == 0:
-                return TelegramError({"status": 1000, "message": "Empty devices"})
+                return TelegramError({"error": {"status": 1000, "message": "Empty devices"}})
             #active_device = list(filter(lambda x: x["is_active"] == True, devices))[0]
             response = r.put("https://api.spotify.com/v1/me/player?", headers=headers, data=json.dumps({
-                "device_ids": [devices[0]['id']],
-                "play": True
-            }))
+                      "device_ids": [devices[0]['id']],
+                      "play": True
+                    }))
             if not response.ok:
-                return TelegramError({"status": 1001, "message": "Couldn't activate the device"})
+                return TelegramError({"error": {"status": 1001, "message": "Couldn't activate the device"}})
 
             response = r.get("https://api.spotify.com/v1/me/player", headers=headers)
             if response.status_code == 204:
-                return TelegramError({"status": 1001, "message": "Couldn't activate the device"})
+                return TelegramError({"error": {"status": 1001, "message": "Couldn't activate the device"}})
             elif not response.ok:
                 return TelegramError(json.loads(response.text))
-        elif not response.ok:
-            return TelegramError(json.loads(response.text))
+            elif not response.ok:
+                return TelegramError(json.loads(response.text))
 
-        if response.ok:
-            result = json.loads(response.text)
-            self.is_playing = result["is_playing"]
-            self.shuffle_state = result["shuffle_state"]
+            if response.ok:
+                result = json.loads(response.text)
+                self.is_playing = result["is_playing"]
+                self.shuffle_state = result["shuffle_state"]
 
-            if result["repeat_state"] == 'off' or 'track':
-                self.repeat_state = 'context'
-            if result["repeat_state"] == 'context':
-                self.repeat_state = 'off'
+                if result["repeat_state"] == 'off' or 'track':
+                    self.repeat_state = 'context'
+                if result["repeat_state"] == 'context':
+                    self.repeat_state = 'off'
 
-            return result
+                return result
         
 
     def _check_valid_token(self):
