@@ -36,13 +36,24 @@ def get_inline_control(user):
     markup = types.InlineKeyboardMarkup()
 
     counter = 5*(user.pageManagerTracks.page - 1)
+
     for track in user.pageManagerTracks[user.pageManagerTracks.page]:
         counter += 1
-        button = types.InlineKeyboardButton(
-            text=f'{str(counter)}. {str(track.artists)} - {str(track.name)}', callback_data=f"selectTrackByPlaylistId {track.playlist_id} {counter}")
+        if user.pageManagerTracks[user.pageManagerTracks.page][0].playlist_id == None:
+            button = types.InlineKeyboardButton(
+                text=f'{str(counter)}. {str(track.artists)} - {str(track.name)}', callback_data=f"selectTrack {counter}")
+        else:
+            button = types.InlineKeyboardButton(
+                text=f'{str(counter)}. {str(track.artists)} - {str(track.name)}', callback_data=f"selectTrackByPlaylistId {track.playlist_id} {counter}")
         markup.add(button)
 
     play_state = "Pause" if user.is_playing else "Play"
+
+    nav_prev_pl_button = types.InlineKeyboardButton('❮', callback_data="nav_prev_control")
+    nav_page_pl_button = types.InlineKeyboardButton(f'{user.pageManagerTracks.page}/{user.pageManagerTracks.max_pages}', callback_data="nav_page_control")
+    nav_next_pl_button = types.InlineKeyboardButton('❯', callback_data="nav_next_control")
+
+    markup.row(nav_prev_pl_button, nav_page_pl_button, nav_next_pl_button)
 
     prev_button = types.InlineKeyboardButton('Prev', callback_data="prev")
     play_button = types.InlineKeyboardButton(play_state, callback_data="play")
