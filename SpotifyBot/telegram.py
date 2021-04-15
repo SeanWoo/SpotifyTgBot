@@ -2,7 +2,7 @@ import telebot
 import requests
 import threading
 import time
-from SpotifyBot import TELEGRAM_TOKEN, SpotifyClient, Session, QueueRepository, get_reply_panel, get_inline_control, get_inline_auth_panel, get_inline_playlist, get_inline_tracks_of_playlist, get_inline_search_tracks, TelegramError
+from SpotifyBot import TELEGRAM_TOKEN, SpotifyClient, Session, QueueRepository, get_reply_panel, get_inline_control, get_inline_auth_panel, get_inline_playlist, TelegramError
 from configReader import SPOTIFY_CLIENT_ID, SPOTIFY_SCOPE
 from telebot import types
 from extensions import userlog
@@ -24,20 +24,11 @@ def callback_inline(call):
     if call.data == 'help':
         bot.send_message(call.message.chat.id, txt_reader.get_text("help_message"))
     elif call.data == "play":
-        old_playing_state = user.is_playing
         user.play()
-        if old_playing_state != user.is_playing:
-            bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_control(user))
     elif call.data == "next":
-        old_playing_state = user.is_playing
         user.next()
-        if old_playing_state != user.is_playing:
-            bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_control(user))
     elif call.data == "prev":
-        old_playing_state = user.is_playing
         user.prev()
-        if old_playing_state != user.is_playing:
-            bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_control(user))
     elif call.data == "cplaylist":
         user.cycle_playlist()
     elif call.data == "shuffle":
@@ -67,11 +58,7 @@ def callback_inline(call):
     elif call.data.find("selectTrackByPlaylistId") != -1:
         idAlbum = call.data.split(' ')[1]
         position = int(call.data.split(' ')[2]) - 1
-
-        old_playing_state = user.is_playing
         user.play(playlist_id = idAlbum, position = position)
-        if old_playing_state != user.is_playing:
-            bot.edit_message_reply_markup(chat_id = call.message.chat.id, message_id = call.message.message_id, reply_markup=get_inline_control(user))
     elif call.data.find("selectTrack") != -1:
         position = int(call.data.split(' ')[1]) - 1
         user.play(use_current_tracks = True, position = position)

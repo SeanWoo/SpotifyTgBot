@@ -272,17 +272,17 @@ class SpotifyClient():
             elif not response.ok:
                 return TelegramError(json.loads(response.text))
 
-            if response.ok:
-                result = json.loads(response.text)
-                self.is_playing = result["is_playing"]
-                self.shuffle_state = result["shuffle_state"]
+        if response.ok:
+            result = json.loads(response.text)
+            self.is_playing = result["is_playing"]
+            self.shuffle_state = result["shuffle_state"]
 
-                if result["repeat_state"] == 'off' or 'track':
-                    self.repeat_state = 'context'
-                if result["repeat_state"] == 'context':
-                    self.repeat_state = 'off'
+            if result["repeat_state"] == 'off' or 'track':
+                self.repeat_state = 'context'
+            if result["repeat_state"] == 'context':
+                self.repeat_state = 'off'
 
-                return result
+            return result
         
 
     def _check_valid_token(self):
