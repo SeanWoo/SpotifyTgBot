@@ -3,32 +3,40 @@ import texts_reader as txt_reader
 from SpotifyBot import PageManager
 from extensions import userlog
 
-def get_inline_auth_panel(link):
+def get_inline_auth_panel(user, link):
     markup = types.InlineKeyboardMarkup()
 
     auth_button = types.InlineKeyboardButton(
-        txt_reader.get_text("autorization"), url=link)
+        txt_reader.get_text(user.language, "autorization"), url=link)
     help_button = types.InlineKeyboardButton(
-        txt_reader.get_text("about_bot"), callback_data='help')
+        txt_reader.get_text(user.language, "about_bot"), callback_data='help')
 
     markup.add(auth_button, help_button)
     return markup
 
+def get_languages_panel():
+    markup = types.InlineKeyboardMarkup()
+    ru_button = types.InlineKeyboardButton('Русский', callback_data="setLanguage ru")
+    en_button = types.InlineKeyboardButton('English', callback_data="setLanguage en")
+    markup.row(ru_button, en_button)
+    return markup
 
-def get_reply_panel():
+def get_reply_panel(user):
     markup = types.ReplyKeyboardMarkup(resize_keyboard=True, row_width=2)
 
     playlists_button = types.KeyboardButton(
-        txt_reader.get_text("playlists"))
+        txt_reader.get_text(user.language, "playlists"))
     control_button = types.KeyboardButton(
-        txt_reader.get_text("control"))
+        txt_reader.get_text(user.language, "control"))
     find_track_button = types.KeyboardButton(
-        txt_reader.get_text("track_finder"))
+        txt_reader.get_text(user.language, "track_finder"))
     help_button = types.KeyboardButton(
-        txt_reader.get_text("about"))
+        txt_reader.get_text(user.language, "about"))
+    language_button = types.KeyboardButton(
+        txt_reader.get_text(user.language, "changeLanguage"))
 
     markup.add(playlists_button, control_button,
-               find_track_button, help_button)
+               find_track_button, help_button,language_button)
     return markup
 
 

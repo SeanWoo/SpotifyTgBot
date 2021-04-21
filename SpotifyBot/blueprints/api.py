@@ -6,16 +6,15 @@ import datetime, time
 from flask import session, request, jsonify, render_template
 from flask import Blueprint
 from extensions import db
-from SpotifyBot import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_SCOPE, QueueRepository, TokenRepository
+from SpotifyBot import SPOTIFY_CLIENT_ID, SPOTIFY_CLIENT_SECRET, SPOTIFY_SCOPE, QueueRepository, UserRepository
 
 
 queueRepository = QueueRepository()
-tokenRepository = TokenRepository()
+userRepository = UserRepository()
 
 api_blueprint = Blueprint('api', __name__)
 
 @api_blueprint.route('/callback/<urlid>')
-
 def callback(urlid):
     code = request.args.get("code")
 
@@ -36,7 +35,7 @@ def callback(urlid):
         if tokens.get("access_token") == None:
             return jsonify({'error_code': 'not_valid'})
 
-        tokenRepository.add_token(data[1], tokens["access_token"], tokens["refresh_token"], tokens["expires_in"])
+        userRepository.update_token(tgid=data[1], access_token=tokens["access_token"], refresh_token=tokens["refresh_token"], expires_in=tokens["expires_in"])
 
         return render_template('index.html')
     return jsonify({'error_code': 'not_valid'})

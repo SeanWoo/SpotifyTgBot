@@ -1,5 +1,9 @@
 {
     "ru": {
+        "select_language":"Выберите язык:",
+        "language":"Русский",
+        "changeLanguage":"Сменить язык",
+        "languageChanged": "Язык сменен",
         "market": "RU",
         "help_message": "Благодаря синхронизации Spotify, Вы можете слушать музыку на чём угодно. Наша команда решила создать бота для телеграмма, благодаря которому у Вас появится возможность выполнять различные действия используя телеграмм бота. Функционал бота практически ничем не будет отличаться от обычного плеера или же того же Spotify. Вы с лёгкостью сможете изменять плейлисты и также искать нужные вам треки.",
         "playlists":"Плейлисты",
@@ -25,6 +29,32 @@
         "error_get_playlist": "Не удалось получить плейлисты"
     },
     "en": {
-        "market": "US"
+        "select_language": "Select language:",
+        "language": "English",
+        "changeLanguage":"Change language",
+        "languageChanged": "Language changed",
+        "market": "US",
+        "help_message": "Thanks to Spotify sync, you can listen to music on anything. Our team decided to create a telegram bot, thanks to which you will be able to perform various actions using the telegram bot. The functionality of the bot will be almost no different from a regular player or the same Spotify. You can easily change playlists and also search for the tracks you need.",
+        "playlists": "Playlists",
+        "about": "About us",
+        "control": "Control",
+        "track_finder":"Search",
+        "search":"To find the audio, send me the name of the artist or the song title:",
+        "search_result":"This is what I could find for your query {0}",
+        "your_playlists":"Playlists: \n",
+        "your_tracks":"Your tracks: \n",
+        "registration": "The Account {0} has been registered",
+        "registration_log":" 'User {0}({1}) logged in Spotify account'",
+        "response_message" : "Hi! I'm a music bot. To start interacting with me, log in to Spotify by clicking the button below.",
+        "not_premium":"You don't have Premium.",
+        "not_active": "Launch the spotify app and turn on the music to access you",
+        "empty_playlist": "Empty playlist",
+        "not_register": "The account was not registered",
+        "authorization": "Authorization",
+        "about_bot": "About the bot",
+        "select_track": "Track selection:",
+        "select_playlist": "Playlist selection:",
+        "rate_limit": "Don't think that if you spam, you will break the bot",
+        "error_get_playlist": "Failed to get playlists"
     }
 }

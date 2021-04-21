@@ -10,6 +10,7 @@ class MySQLDatabase():
         self.user_name = None
         self.user_password = None
         self.database = None
+        
     def create_connection(self, host_name, user_name, user_password, database):
         self.host_name = host_name
         self.user_name = user_name

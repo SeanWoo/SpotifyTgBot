@@ -1,14 +1,14 @@
 import pytest
-from SpotifyBot import TokenRepository, QueueRepository
+from SpotifyBot import UserRepository, QueueRepository
 from extensions import db, initDb
 from configReader import DATABASE_CONNECT
 
-def test_TokenRepository():
+def test_userRepository():
     db.create_connection(DATABASE_CONNECT["SERVER"], DATABASE_CONNECT["USER"], DATABASE_CONNECT["PASSWORD"], DATABASE_CONNECT["DATABASE"])
 
     initDb(db)
 
-    rep = TokenRepository()
+    rep = UserRepository()
     rep.add_token(123123, "qwerty", "wasd", 321321)
 
     data = rep.get_token(123123)

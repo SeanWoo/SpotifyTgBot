@@ -1,7 +1,7 @@
 from extensions import db
-from SpotifyBot import SpotifyClient, TokenRepository
+from SpotifyBot import SpotifyClient, UserRepository
 
-tokenRepository = TokenRepository()
+userRepository = UserRepository()
 
 
 class Session():
@@ -25,22 +25,33 @@ class Session():
 
         return True
 
-    def get(self, tgid):
+    def find_by_tgid(self, tgid):
         for i in self.clients:
             if not i:
                 break
             if i.tgid == tgid:
                 return i
+                
+    def find_place_by_tgid(self, tgid):
+        for i in range(len(self.clients)):
+            if not self.clients[i]:
+                break
+            if self.clients[i].tgid == tgid:
+                return i
 
-    def take(self, tgid):
-        client = self.get(tgid)
+    def get(self, tgid):
+        client = self.find_by_tgid(tgid)
         if client:
             return client
         else:
-            data = tokenRepository.get_token(tgid)
+            data = userRepository.get_user(tgid)
             if data:
                 client = SpotifyClient(data)
                 self.add(client)
                 return client
             else:
                 return None
+
+    def update(self, tgid):
+        data = userRepository.get_user(tgid)
+        self.clients[self.find_place_by_tgid(tgid)] = SpotifyClient(data)
