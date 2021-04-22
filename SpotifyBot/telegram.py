@@ -70,6 +70,7 @@ def callback_inline(call):
             bot.send_message(call.message.chat.id, txt_reader.get_text(user.language, "languageChanged"), reply_markup=get_reply_panel(user))
         else:
             userRepository.add_user(tgid=call.from_user.id, access_token=None, refresh_token=None, expires_in=None, language=language)
+            send_welcome_callback(call.message, call.from_user.id)
     bot.answer_callback_query(call.id)
 
     
@@ -139,9 +140,11 @@ def search(message, user_id = None):
     bot.register_next_step_handler(message, next_step_search)
 
 @bot.message_handler(commands=['start'])
-def send_welcome_callback(message):
-    cache_client.update(message.from_user.id)
-    user = cache_client.get(message.from_user.id)
+def send_welcome_callback(message, user_id = None):
+    userId = user_id if user_id else message.from_user.id
+
+    cache_client.update(userId)
+    user = cache_client.get(userId)
 
     if user:
         if user.access_token:
@@ -152,11 +155,11 @@ def send_welcome_callback(message):
             bot.send_message(message.chat.id, txt_reader.get_text(user.language,
                 "registration").format(username), reply_markup=get_reply_panel(user))
             userlog.info(txt_reader.get_text(user.language,"registration_log").format(
-                message.from_user.username, message.from_user.id))
+                message.from_user.username, userId))
             return
         else:
-            data = queueRepository.get_free_link(message.from_user.id)
-            queueRepository.block_link(data[0], message.from_user.id)
+            data = queueRepository.get_free_link(userId)
+            queueRepository.block_link(data[0], userId)
 
             link = f"https://accounts.spotify.com/authorize?client_id={SPOTIFY_CLIENT_ID}&response_type=code&scope={SPOTIFY_SCOPE}&redirect_uri={data[2]}"
             responseMessage = txt_reader.get_text(user.language,"response_message")

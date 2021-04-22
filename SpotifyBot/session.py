@@ -54,7 +54,8 @@ class Session():
 
     def update(self, tgid):
         data = userRepository.get_user(tgid)
-        if data:
+        ids = self.find_place_by_tgid(tgid)
+        if data and ids:
             client = SpotifyClient(data)
-            self.clients[self.find_place_by_tgid(tgid)] = client
+            self.clients[ids] = client
         
