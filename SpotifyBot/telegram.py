@@ -140,6 +140,7 @@ def search(message, user_id = None):
 
 @bot.message_handler(commands=['start'])
 def send_welcome_callback(message):
+    cache_client.update(message.from_user.id)
     user = cache_client.get(message.from_user.id)
 
     if user:
@@ -161,7 +162,6 @@ def send_welcome_callback(message):
             responseMessage = txt_reader.get_text(user.language,"response_message")
 
             bot.send_message(message.chat.id, responseMessage, reply_markup=get_inline_auth_panel(user, link))
-            cache_client.update(message.from_user.id)
     else:
         change_lang(message)
         return
