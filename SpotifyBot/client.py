@@ -157,6 +157,8 @@ class SpotifyClient():
         if isinstance(player_info, TelegramError):
             return player_info
 
+        self.shuffle_state = player_info["shuffle_state"]
+
         response = r.put("https://api.spotify.com/v1/me/player/shuffle?state=" +
                          str(self.shuffle_state), headers=headers)
         return response.ok
@@ -225,6 +227,11 @@ class SpotifyClient():
         if isinstance(player_info, TelegramError):
             return player_info
 
+        if player_info["repeat_state"] == 'off' or 'track':
+            self.repeat_state = 'context'
+        if player_info["repeat_state"] == 'context':
+            self.repeat_state = 'off'
+
         response = r.put("https://api.spotify.com/v1/me/player/repeat?state=" +
                          str(self.repeat_state), headers=headers)
         if not response.ok:
@@ -240,6 +247,11 @@ class SpotifyClient():
         player_info = self.get_player()
         if isinstance(player_info, TelegramError):
             return player_info
+
+        if player_info["repeat_state"] == 'off' or 'track':
+            self.repeat_state = 'context'
+        if player_info["repeat_state"] == 'context':
+            self.repeat_state = 'off'
 
         response = r.put("https://api.spotify.com/v1/me/player/repeat?state=" +
                          str(self.repeat_state), headers=headers)
@@ -291,11 +303,7 @@ class SpotifyClient():
             result = json.loads(response.text)
             self.is_playing = result["is_playing"]
             self.shuffle_state = result["shuffle_state"]
-
-            if result["repeat_state"] == 'off' or 'track':
-                self.repeat_state = 'context'
-            if result["repeat_state"] == 'context':
-                self.repeat_state = 'off'
+            self.repeat_state = result["repeat_state"]
 
             return result
         
