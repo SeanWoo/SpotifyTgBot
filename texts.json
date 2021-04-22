@@ -50,7 +50,7 @@
         "not_active": "Launch the spotify app and turn on the music to access you",
         "empty_playlist": "Empty playlist",
         "not_register": "The account was not registered",
-        "authorization": "Authorization",
+        "autorization": "Autorization",
         "about_bot": "About the bot",
         "select_track": "Track selection:",
         "select_playlist": "Playlist selection:",
