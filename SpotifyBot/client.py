@@ -157,7 +157,7 @@ class SpotifyClient():
         if isinstance(player_info, TelegramError):
             return player_info
 
-        self.shuffle_state = player_info["shuffle_state"]
+        self.shuffle_state = not player_info["shuffle_state"]
 
         response = r.put("https://api.spotify.com/v1/me/player/shuffle?state=" +
                          str(self.shuffle_state), headers=headers)
@@ -227,9 +227,9 @@ class SpotifyClient():
         if isinstance(player_info, TelegramError):
             return player_info
 
-        if player_info["repeat_state"] == 'off' or 'track':
-            self.repeat_state = 'context'
-        if player_info["repeat_state"] == 'context':
+        if player_info["repeat_state"] == 'off' or 'context':
+            self.repeat_state = 'track'
+        if player_info["repeat_state"] == 'track':
             self.repeat_state = 'off'
 
         response = r.put("https://api.spotify.com/v1/me/player/repeat?state=" +
