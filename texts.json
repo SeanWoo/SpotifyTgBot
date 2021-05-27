@@ -26,7 +26,8 @@
         "select_track": "Выбор трека:",
         "select_playlist": "Выбор плейлиста:", 
         "rate_limit": "Не думай что если будешь спамить то сломаешь бота",
-        "error_get_playlist": "Не удалось получить плейлисты"
+        "error_get_playlist": "Не удалось получить плейлисты",
+        "stats":"статистика:\n\nВсего: {0}\nЗарегестрированных: {1}"
     },
     "en": {
         "select_language": "Select language:",
@@ -53,8 +54,9 @@
         "autorization": "Autorization",
         "about_bot": "About the bot",
         "select_track": "Track selection:",
-        "select_playlist": "Playlist selection:",
+        "select_playlist": "Playlist selSection:",
         "rate_limit": "Don't think that if you spam, you will break the bot",
-        "error_get_playlist": "Failed to get playlists"
+        "error_get_playlist": "Failed to get playlists",
+        "stats":"Statistic:\n\nAll: {0}\nRegistred: {1}"
     }
 }
