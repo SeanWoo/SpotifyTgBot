@@ -139,6 +139,16 @@ def search(message, user_id = None):
     
     bot.register_next_step_handler(message, next_step_search)
 
+@bot.message_handler(commands=['stats'])
+def stats(message, user_id = None):
+    userId = user_id if user_id else message.from_user.id
+
+    cache_client.update(userId)
+    user = cache_client.get(userId)
+    if user:
+        data_1, data_2 = userRepository.stats()
+        bot.send_message(message.chat.id,txt_reader.get_text(user.language,"stats").format(data_1[0],data_2[0]))
+
 @bot.message_handler(commands=['start'])
 def send_welcome_callback(message, user_id = None):
     userId = user_id if user_id else message.from_user.id
@@ -209,3 +219,4 @@ def _check_button(message, textId):
     if not user:
         return False #Если нету юзера, то будет работать только сообщение старт, другие не будут
     return message.text == txt_reader.get_text(user.language, textId)
+

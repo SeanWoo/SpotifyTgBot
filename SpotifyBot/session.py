@@ -58,4 +58,8 @@ class Session():
         if data and ids:
             client = SpotifyClient(data)
             self.clients[ids] = client
+
+    def stats(self):
+        return userRepository.stats()
+    
         
