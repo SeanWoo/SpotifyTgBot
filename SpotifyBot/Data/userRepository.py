@@ -26,9 +26,9 @@ class UserRepository(BaseRepository):
                             (language, tgid))
         db.close_cursor()
     def stats(self):
-        cursor = db.execute(f"SELECT COUNT(*) FROM {self.tableName} WHERE tgid IS NOT NULL")
+        cursor = db.execute(f"SELECT COUNT(*) FROM {self.tableName} WHERE refresh_token IS NOT NULL;")
         data_1 = cursor.fetchone()
-        cursor = db.execute(f"SELECT COUNT(*) FROM {self.tableName}")
+        cursor = db.execute(f"SELECT COUNT(*) FROM {self.tableName};")
         data_2 = cursor.fetchone()
         db.close_cursor()
         return (data_1,data_2)
