@@ -27,7 +27,7 @@
         "select_playlist": "Выбор плейлиста:", 
         "rate_limit": "Не думай что если будешь спамить то сломаешь бота",
         "error_get_playlist": "Не удалось получить плейлисты",
-        "stats":"статистика:\n\nВсего: {0}\nЗарегестрированных: {1}"
+        "stats":"Cтатистика:\n\nОбщее кол-во пользователей: {0}\nАвторизированных кол-во пользователей: {1}"
     },
     "en": {
         "select_language": "Select language:",
@@ -57,6 +57,6 @@
         "select_playlist": "Playlist selSection:",
         "rate_limit": "Don't think that if you spam, you will break the bot",
         "error_get_playlist": "Failed to get playlists",
-        "stats":"Statistic:\n\nAll: {0}\nRegistred: {1}"
+        "stats":"Statistics:\n\nTotal number of users: {0}\nAuthorized number of users: {1}"
     }
 }
