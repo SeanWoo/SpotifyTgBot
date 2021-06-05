@@ -58,8 +58,17 @@ def get_callback(callback, user: SpotifyClient):
         if user.pageManagerTracks.page != user.pageManagerTracks.max_pages:
             user.pageManagerTracks.page += 1
             return get_inline_search_tracks(user)
+    elif callback.find("selectPlaylist") != -1:
+        idPlaylist = callback.split(' ')[1]
+        user.get_tracks_of_playlist(idPlaylist)
+        return get_inline_track_of_playlist(user)
+    elif callback.find('selectTrack') != -1:
+        idAlbum = callback.split(' ')[1]
+        position = int(callback.split(' ')[2]) - 1
+        user.play(playlist_id=idAlbum, position= position)
+        return
     elif callback == 'None':
-        return get_main_menu(user)
+        return get_main_menu()
 
 def send_message(vk: VkApi.get_api, user:SpotifyClient, event, callback):
     if callback == 'None':

@@ -9,3 +9,4 @@ from .client import SpotifyClient
 from .session import Session
 from .blueprints import api_blueprint
 from .telegram import start_telegram_bot, bot
+from .VK import VKBot
