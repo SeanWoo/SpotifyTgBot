@@ -8,3 +8,4 @@ config.*
 .env
 *log.txt
 *DS_Store*
+.idea/

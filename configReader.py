@@ -15,4 +15,7 @@ with open(path, "r") as f:
 
     TELEGRAM_TOKEN = obj["TELEGRAM_TOKEN"]
 
+    VK_TOKEN = obj['VK_TOKEN']
+    ID_GROUP = obj['ID_GROUP']
+
     DATABASE_CONNECT = obj["DATABASE_CONNECT"]
