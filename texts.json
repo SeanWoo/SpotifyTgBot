@@ -1,5 +1,6 @@
 {
     "ru": {
+        "login": "Вход",
         "select_language":"Выберите язык:",
         "language":"Русский",
         "changeLanguage":"Сменить язык",
@@ -30,6 +31,7 @@
         "stats":"Cтатистика:\n\nОбщее кол-во пользователей: {0}\nАвторизированных кол-во пользователей: {1}"
     },
     "en": {
+        "login": "login",
         "select_language": "Select language:",
         "language": "English",
         "changeLanguage":"Change language",

@@ -1,14 +1,30 @@
 from vk_api import VkApi
 from SpotifyBot.client import SpotifyClient
-from .keyboard import get_inline_control,get_inline_playlist,get_inline_track_of_playlist,get_inline_search_tracks, get_main_menu
+from .keyboard import *
 from vk_api.utils import get_random_id
+from SpotifyBot import UserRepository, QueueRepository
+import texts_reader as txt_reader
 
+userRepository = UserRepository()
+queueRepository = QueueRepository()
 
-
-
-
-def get_callback(callback, user: SpotifyClient):
-    if callback == "help":
+def get_callback(callback, user: SpotifyClient, event=None, session=None, cache_client=None):
+    if callback.find("setLanguage") != -1:
+        language = callback.split(' ')[1]
+        if user:
+            user.language = language
+        else:
+            userRepository.add_user(tgid=event.obj.user_id, access_token=None, refresh_token=None,
+                                    expires_in=None, language=language)
+            userId = event.obj.user_id
+            cache_client.update(userId)
+            user = cache_client.get(userId)
+            keyboard, message = get_callback('welcome', user, event=event, session=session)
+            return (keyboard, message)
+    elif callback == 'welcome':
+        keyboard, message = get_welcome_menu(event=event, queueRepository=queueRepository, session=session, user=user)
+        return (keyboard, message)
+    elif callback == "help":
         return
     elif callback == 'get_inline_playlist':
         result = user.get_playlists()
@@ -67,17 +83,29 @@ def get_callback(callback, user: SpotifyClient):
         position = int(callback.split(' ')[2]) - 1
         user.play(playlist_id=idAlbum, position= position)
         return
-    elif callback == 'None':
-        return get_main_menu()
+    elif callback == 'Menu':
+        return get_main_menu(user)
+    else:
+        return get_languages_panel()
 
-def send_message(vk: VkApi.get_api, user:SpotifyClient, event, callback):
-    if callback == 'None':
+def send_message(vk: VkApi.get_api, user:SpotifyClient, event, callback, session=None, cache_client=None):
+    if callback == 'Menu' or callback == 'selectLang' or callback == "welcome" :
+        keyboard, message = get_callback(callback, user, event, session=session, cache_client=cache_client)
         vk.messages.send(
-            keyboard=get_callback(callback, user),
+            keyboard=keyboard,
             random_id=get_random_id(),
-            message='Привет! Я музыкальный бот. Чтобы начать со мной взаимодействия, авторизируйтесь в Spotify нажав кнопку ниже.',
+            message=message,
             user_id=event.message.from_id,
             peer_id=event.message.from_id
+        )
+    elif callback.find('setLanguage') != -1:
+        keyboard, message = get_callback(callback=callback, user=user, event=event, session=session, cache_client=cache_client)
+        vk.messages.send(
+            keyboard=keyboard,
+            random_id=get_random_id(),
+            message=message,
+            user_id=event.obj.user_id,
+            peer_id=event.obj.user_id
         )
     else:
         template = get_callback(callback, user)
