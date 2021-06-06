@@ -3,3 +3,4 @@ mysql-connector-python==8.0.23
 pyTelegramBotAPI==3.7.6
 vk==2.0.2
 vk-api==11.9.1
+Flask_Session==0.3.2
